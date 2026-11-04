@@ -1,0 +1,217 @@
+{
+  "dataset_name": "Nexo Spanish Hospitality AI Benchmark Dataset",
+  "created_at": "2026-10-31T05:00:00Z",
+  "samples": [
+    {
+      "id": "sample-01",
+      "filename": "carta_impresa_2col.jpg",
+      "format_type": "Carta Impresa Tradicional a 2 Columnas",
+      "establishment": "Taberna El Chulapo",
+      "total_dishes": 8,
+      "categories": [
+        {
+          "name_es": "Tapas y Raciones",
+          "dishes": [
+            {
+              "name_es": "Croquetas de Jamón Ibérico (6 uds)",
+              "price": 9.5,
+              "allergens": [
+                "gluten",
+                "dairy",
+                "eggs"
+              ]
+            },
+            {
+              "name_es": "Patatas Bravas Tradicionales",
+              "price": 6.5,
+              "allergens": [
+                "gluten",
+                "eggs"
+              ]
+            },
+            {
+              "name_es": "Calamares a la Andaluza",
+              "price": 11.0,
+              "allergens": [
+                "gluten",
+                "molluscs"
+              ]
+            },
+            {
+              "name_es": "Gambas al Ajillo con Guindilla",
+              "price": 12.5,
+              "allergens": [
+                "crustaceans",
+                "sulphites"
+              ]
+            }
+          ]
+        },
+        {
+          "name_es": "Platos Principales y Postres",
+          "dishes": [
+            {
+              "name_es": "Tortilla de Patatas de Betanzos",
+              "price": 8.0,
+              "allergens": [
+                "eggs"
+              ]
+            },
+            {
+              "name_es": "Entrecot de Ternera a la Brasa",
+              "price": 18.0,
+              "allergens": []
+            },
+            {
+              "name_es": "Merluza a la Cazuela con Almejas",
+              "price": 16.5,
+              "allergens": [
+                "fish",
+                "molluscs",
+                "sulphites"
+              ]
+            },
+            {
+              "name_es": "Tarta de Queso Fluida al Horno",
+              "price": 5.5,
+              "allergens": [
+                "dairy",
+                "eggs",
+                "gluten"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sample-02",
+      "filename": "pizarra_tiza_bar.jpg",
+      "format_type": "Pizarra de Bar Escrita a Mano con Tiza",
+      "establishment": "Bar Casa Paco",
+      "total_dishes": 6,
+      "categories": [
+        {
+          "name_es": "Raciones del Día",
+          "dishes": [
+            {
+              "name_es": "Torreznos de Soria Crujientes",
+              "price": 7.5,
+              "allergens": []
+            },
+            {
+              "name_es": "Chipirones Encebollados a la Plancha",
+              "price": 13.0,
+              "allergens": [
+                "molluscs"
+              ]
+            },
+            {
+              "name_es": "Ensaladilla Rusa con Ventresca y Picos",
+              "price": 8.5,
+              "allergens": [
+                "eggs",
+                "fish",
+                "gluten"
+              ]
+            },
+            {
+              "name_es": "Pimientos de Padrón Fritos",
+              "price": 6.0,
+              "allergens": []
+            },
+            {
+              "name_es": "Rabo de Toro Estofado al Vino Tinto",
+              "price": 15.5,
+              "allergens": [
+                "celery",
+                "sulphites"
+              ]
+            },
+            {
+              "name_es": "Mejillones al Vapor con Limón",
+              "price": 9.0,
+              "allergens": [
+                "molluscs",
+                "sulphites"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sample-03",
+      "filename": "menu_dia_doblado.jpg",
+      "format_type": "Menú del Día en Papel Doblado con Iluminación Irregular",
+      "establishment": "Hostal Restaurante El Roble",
+      "total_dishes": 6,
+      "menu_price": 12.5,
+      "categories": [
+        {
+          "name_es": "Primeros Platos",
+          "dishes": [
+            {
+              "name_es": "Salmorejo Cordobés con Jamón y Huevo Duro",
+              "price": 12.5,
+              "allergens": [
+                "gluten",
+                "eggs"
+              ]
+            },
+            {
+              "name_es": "Lentejas Castellanas Caseras con Chorizo",
+              "price": 12.5,
+              "allergens": [
+                "gluten",
+                "sulphites"
+              ]
+            }
+          ]
+        },
+        {
+          "name_es": "Segundos Platos",
+          "dishes": [
+            {
+              "name_es": "Lubina Fresca a la Espalda con Ajos Salteados",
+              "price": 12.5,
+              "allergens": [
+                "fish"
+              ]
+            },
+            {
+              "name_es": "Escalope de Ternera Milanesa con Patatas Fritas",
+              "price": 12.5,
+              "allergens": [
+                "gluten",
+                "eggs"
+              ]
+            }
+          ]
+        },
+        {
+          "name_es": "Postres Caseros",
+          "dishes": [
+            {
+              "name_es": "Natillas Caseras con Canela y Galleta María",
+              "price": 12.5,
+              "allergens": [
+                "dairy",
+                "eggs",
+                "gluten"
+              ]
+            },
+            {
+              "name_es": "Flan de Huevo Tradicional con Nata Montada",
+              "price": 12.5,
+              "allergens": [
+                "dairy",
+                "eggs"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

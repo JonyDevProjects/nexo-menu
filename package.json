@@ -1,0 +1,48 @@
+{
+  "name": "nexo",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit --incremental false",
+    "test:ci": "npm run typecheck && npm run test:rls && npm run test:field && npm run test:flow",
+    "test:flow": "node --experimental-strip-types scripts/test-menu-flow.ts",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:build": "docker compose build",
+    "docker:logs": "docker compose logs -f",
+    "litert:serve": "node --experimental-strip-types scripts/litert-service.ts",
+    "test:rls": "node --experimental-strip-types scripts/test-supabase-rls.ts",
+    "test:isr": "node --experimental-strip-types scripts/test-isr-cache.ts",
+    "benchmark:ai": "node --experimental-strip-types scripts/benchmark-ai.ts",
+    "test:field": "node --experimental-strip-types scripts/test-field-pilot.ts"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "@supabase/ssr": "^0.5.2",
+    "@supabase/supabase-js": "^2.47.10",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.468.0",
+    "next": "^15.1.0",
+    "qrcode.react": "^4.2.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwind-merge": "^2.6.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2",
+    "autoprefixer": "^10.6.1",
+    "eslint": "^9.16.0",
+    "eslint-config-next": "^15.1.0",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.2"
+  }
+}

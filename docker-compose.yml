@@ -1,0 +1,73 @@
+# ==============================================================================
+# NEXO PLATFORM - LOCAL CONTAINERIZED DEVELOPMENT ENVIRONMENT
+# Parity with Vercel Serverless & Supabase PostgreSQL (Postgres 15 + RLS + Seed)
+# ==============================================================================
+
+name: nexo
+
+services:
+  # ----------------------------------------------------------------------------
+  # Next.js 15 Application Service (Hot-Reload Dev Server)
+  # ----------------------------------------------------------------------------
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    container_name: nexo-app
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+      - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL:-http://localhost:54322}
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.local-anon-key}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY:-local-service-role-key}
+      - AI_PROVIDER=${AI_PROVIDER:-mock}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-postgres}
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - nexo-network
+
+  # ----------------------------------------------------------------------------
+  # PostgreSQL 15 Database Service (Supabase Schema & Seed Parity)
+  # ----------------------------------------------------------------------------
+  db:
+    image: postgres:15-alpine
+    container_name: nexo-db
+    restart: unless-stopped
+    ports:
+      # Host port default 54322 to prevent conflicts with local Postgres (5432 / 15432)
+      - "${POSTGRES_PORT:-54322}:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-postgres}
+    volumes:
+      - nexo-pgdata:/var/lib/postgresql/data
+      - ./docker/init-db:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - nexo-network
+
+volumes:
+  nexo-pgdata:
+    name: nexo-pgdata
+
+networks:
+  nexo-network:
+    name: nexo-network
