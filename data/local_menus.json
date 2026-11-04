@@ -1,0 +1,308 @@
+{
+  "taberna-el-chulapo": {
+    "restaurant": {
+      "id": "res-taberna-el-chulapo",
+      "user_id": "demo-anonymous-user",
+      "name": "Taberna El Chulapo",
+      "slug": "taberna-el-chulapo",
+      "description": "Cocina Tradicional & Tapas Madrileñas — Carta de Raciones",
+      "currency": "EUR",
+      "logo_url": null,
+      "is_published": true,
+      "subscription_tier": "free",
+      "ai_scans_today": 1,
+      "ai_scans_reset_at": "2026-11-04T08:35:00.000Z",
+      "created_at": "2026-11-04T08:35:00.000Z",
+      "updated_at": "2026-11-04T08:35:00.000Z"
+    },
+    "categories": [
+      {
+        "id": "cat-taberna-el-chulapo-1",
+        "restaurant_id": "res-taberna-el-chulapo",
+        "name_es": "Tapas y Raciones",
+        "name_en": "Tapas and Sharing Plates",
+        "order_index": 0,
+        "dishes": [
+          {
+            "id": "dish-taberna-el-chulapo-1-1",
+            "restaurant_id": "res-taberna-el-chulapo",
+            "category_id": "cat-taberna-el-chulapo-1",
+            "name_es": "Croquetas de Jamón Ibérico (6 uds)",
+            "name_en": "Iberian Ham Croquettes (6 pcs)",
+            "description_es": "Bechamel cremosa artesana con jamón de bellota",
+            "description_en": "Creamy artisanal béchamel with acorn-fed Iberian ham",
+            "price": 9.5,
+            "allergens": [
+              "gluten",
+              "dairy",
+              "eggs"
+            ],
+            "is_available": true,
+            "order_index": 0
+          },
+          {
+            "id": "dish-taberna-el-chulapo-1-2",
+            "restaurant_id": "res-taberna-el-chulapo",
+            "category_id": "cat-taberna-el-chulapo-1",
+            "name_es": "Patatas Bravas Tradicionales",
+            "name_en": "Traditional Spicy Bravas Potatoes",
+            "description_es": "Patatas crujientes con salsa brava casera y alioli",
+            "description_en": "Crispy hand-cut potatoes with homemade spicy brava sauce and garlic aioli",
+            "price": 6.5,
+            "allergens": [
+              "gluten",
+              "eggs"
+            ],
+            "is_available": true,
+            "order_index": 1
+          },
+          {
+            "id": "dish-taberna-el-chulapo-1-3",
+            "restaurant_id": "res-taberna-el-chulapo",
+            "category_id": "cat-taberna-el-chulapo-1",
+            "name_es": "Calamares a la Andaluza",
+            "name_en": "Andalusian Style Fried Squid",
+            "description_es": "Anillas de calamar fresco enharinadas con limón",
+            "description_en": "Fresh squid rings lightly battered and served with lemon",
+            "price": 11,
+            "allergens": [
+              "gluten",
+              "molluscs"
+            ],
+            "is_available": true,
+            "order_index": 2
+          },
+          {
+            "id": "dish-taberna-el-chulapo-1-4",
+            "restaurant_id": "res-taberna-el-chulapo",
+            "category_id": "cat-taberna-el-chulapo-1",
+            "name_es": "Gambas al Ajillo con Guindilla",
+            "name_en": "Garlic Prawns with Chili",
+            "description_es": "Gambas salteadas en aceite de oliva virgen y ajo",
+            "description_en": "Sautéed wild prawns in extra virgin olive oil, garlic and chili",
+            "price": 12.5,
+            "allergens": [
+              "crustaceans",
+              "sulphites"
+            ],
+            "is_available": true,
+            "order_index": 3
+          }
+        ]
+      },
+      {
+        "id": "cat-taberna-el-chulapo-2",
+        "restaurant_id": "res-taberna-el-chulapo",
+        "name_es": "Platos Principales y Postres",
+        "name_en": "Mains & Desserts",
+        "order_index": 1,
+        "dishes": [
+          {
+            "id": "dish-taberna-el-chulapo-2-1",
+            "restaurant_id": "res-taberna-el-chulapo",
+            "category_id": "cat-taberna-el-chulapo-2",
+            "name_es": "Tortilla de Patatas de Betanzos",
+            "name_en": "Betanzos Style Runny Spanish Omelette",
+            "description_es": "Huevos de corral camperos y patata pochada tierna",
+            "description_en": "Free-range eggs and tender confit potatoes, juicy runny center",
+            "price": 8,
+            "allergens": [
+              "eggs"
+            ],
+            "is_available": true,
+            "order_index": 0
+          },
+          {
+            "id": "dish-taberna-el-chulapo-2-2",
+            "restaurant_id": "res-taberna-el-chulapo",
+            "category_id": "cat-taberna-el-chulapo-2",
+            "name_es": "Entrecot de Ternera a la Brasa",
+            "name_en": "Grilled Beef Entrecôte",
+            "description_es": "Carne madurada 300g con patatas y pimientos",
+            "description_en": "300g dry-aged beef steak with fried potatoes and Padrón peppers",
+            "price": 18,
+            "allergens": [],
+            "is_available": true,
+            "order_index": 1
+          },
+          {
+            "id": "dish-taberna-el-chulapo-2-3",
+            "restaurant_id": "res-taberna-el-chulapo",
+            "category_id": "cat-taberna-el-chulapo-2",
+            "name_es": "Merluza a la Cazuela con Almejas",
+            "name_en": "Hake and Clams Casserole",
+            "description_es": "Lomo de merluza fresca en salsa verde y vino blanco",
+            "description_en": "Fresh hake loin in traditional green sauce, white wine and clams",
+            "price": 16.5,
+            "allergens": [
+              "fish",
+              "molluscs",
+              "sulphites"
+            ],
+            "is_available": true,
+            "order_index": 2
+          },
+          {
+            "id": "dish-taberna-el-chulapo-2-4",
+            "restaurant_id": "res-taberna-el-chulapo",
+            "category_id": "cat-taberna-el-chulapo-2",
+            "name_es": "Tarta de Queso Fluida al Horno",
+            "name_en": "Baked Creamy Melting Cheesecake",
+            "description_es": "Estilo San Sebastián con interior suave y cremoso",
+            "description_en": "San Sebastián style burnt cheesecake with a melting, velvety center",
+            "price": 5.5,
+            "allergens": [
+              "dairy",
+              "eggs",
+              "gluten"
+            ],
+            "is_available": true,
+            "order_index": 3
+          }
+        ]
+      }
+    ]
+  },
+  "hostal-restaurante-el-roble": {
+    "restaurant": {
+      "id": "res-hostal-restaurante-el-roble",
+      "user_id": "demo-anonymous-user",
+      "name": "HOSTAL RESTAURANTE EL ROBLEHOSTAL RESTAURANTE EL ROBLE",
+      "slug": "hostal-restaurante-el-roble",
+      "description": "Tapas, raciones y comida casera.",
+      "currency": "EUR",
+      "logo_url": null,
+      "is_published": true,
+      "subscription_tier": "free",
+      "ai_scans_today": 1,
+      "ai_scans_reset_at": "2026-11-04T14:46:27.125Z",
+      "created_at": "2026-11-04T14:46:27.125Z",
+      "updated_at": "2026-11-04T14:46:27.125Z"
+    },
+    "categories": [
+      {
+        "id": "cat-hostal-restaurante-el-roble-1",
+        "restaurant_id": "res-hostal-restaurante-el-roble",
+        "name_es": "Primeros Platos",
+        "name_en": "First Courses",
+        "order_index": 0,
+        "dishes": [
+          {
+            "id": "dish-hostal-restaurante-el-roble-1-1",
+            "restaurant_id": "res-hostal-restaurante-el-roble",
+            "category_id": "cat-hostal-restaurante-el-roble-1",
+            "name_es": "Salmorejo Cordobés con Jamón y Huevo Duro",
+            "name_en": "Cordovan Salmorejo with Ham and Hard-Boiled Egg",
+            "description_es": "Tradicional crema fría cordobesa de tomate, pan, ajo y aceite de oliva virgen extra, coronada con virutas de jamón serrano y huevo duro.",
+            "description_en": null,
+            "price": 12.5,
+            "allergens": [
+              "gluten",
+              "eggs"
+            ],
+            "is_available": true,
+            "order_index": 0
+          },
+          {
+            "id": "dish-hostal-restaurante-el-roble-1-2",
+            "restaurant_id": "res-hostal-restaurante-el-roble",
+            "category_id": "cat-hostal-restaurante-el-roble-1",
+            "name_es": "Lentejas Castellanas Caseras con Chorizo",
+            "name_en": "Homemade Castilian Lentils with Chorizo",
+            "description_es": "Guiso tradicional de lentejas castellanas cocinadas a fuego lento con chorizo, verduras y un toque de laurel.",
+            "description_en": null,
+            "price": 12.5,
+            "allergens": [
+              "celery"
+            ],
+            "is_available": true,
+            "order_index": 1
+          }
+        ]
+      },
+      {
+        "id": "cat-hostal-restaurante-el-roble-2",
+        "restaurant_id": "res-hostal-restaurante-el-roble",
+        "name_es": "Segundos Platos",
+        "name_en": "Second Courses",
+        "order_index": 1,
+        "dishes": [
+          {
+            "id": "dish-hostal-restaurante-el-roble-2-1",
+            "restaurant_id": "res-hostal-restaurante-el-roble",
+            "category_id": "cat-hostal-restaurante-el-roble-2",
+            "name_es": "Lubina Fresca a la Espalda con Ajos Salteados",
+            "name_en": "Fresh Sea Bass with Sautéed Garlic",
+            "description_es": "Lomo de lubina fresca cocinado a la espalda acompañado de rejos de ajo salteados en aceite de oliva y un toque de vino blanco.",
+            "description_en": null,
+            "price": 12.5,
+            "allergens": [
+              "fish",
+              "sulphites"
+            ],
+            "is_available": true,
+            "order_index": 0
+          },
+          {
+            "id": "dish-hostal-restaurante-el-roble-2-2",
+            "restaurant_id": "res-hostal-restaurante-el-roble",
+            "category_id": "cat-hostal-restaurante-el-roble-2",
+            "name_es": "Escalope de Ternera Milanesa con Patatas Fritas",
+            "name_en": "Milanese Veal Escalope with French Fries",
+            "description_es": "Fino filete de ternera empanado y crujiente al estilo milanés, servido con patatas fritas caseras.",
+            "description_en": null,
+            "price": 12.5,
+            "allergens": [
+              "gluten",
+              "eggs"
+            ],
+            "is_available": true,
+            "order_index": 1
+          }
+        ]
+      },
+      {
+        "id": "cat-hostal-restaurante-el-roble-3",
+        "restaurant_id": "res-hostal-restaurante-el-roble",
+        "name_es": "Postres Caseros",
+        "name_en": "Homemade Desserts",
+        "order_index": 2,
+        "dishes": [
+          {
+            "id": "dish-hostal-restaurante-el-roble-3-1",
+            "restaurant_id": "res-hostal-restaurante-el-roble",
+            "category_id": "cat-hostal-restaurante-el-roble-3",
+            "name_es": "Natillas Caseras con Canela y Galleta María",
+            "name_en": "Homemade Custard with Cinnamon and Maria Biscuit",
+            "description_es": "Tradicional crema de vainilla casera espolvoreada con canela molida y acompañada de una galleta María.",
+            "description_en": null,
+            "price": 12.5,
+            "allergens": [
+              "dairy",
+              "eggs",
+              "gluten"
+            ],
+            "is_available": true,
+            "order_index": 0
+          },
+          {
+            "id": "dish-hostal-restaurante-el-roble-3-2",
+            "restaurant_id": "res-hostal-restaurante-el-roble",
+            "category_id": "cat-hostal-restaurante-el-roble-3",
+            "name_es": "Flan de Huevo Tradicional con Nata Montada",
+            "name_en": "Traditional Egg Flan with Whipped Cream",
+            "description_es": "Flan casero de huevo con caramelo líquido, servido con una porción de nata montada fresca.",
+            "description_en": null,
+            "price": 12.5,
+            "allergens": [
+              "dairy",
+              "eggs"
+            ],
+            "is_available": true,
+            "order_index": 1
+          }
+        ]
+      }
+    ]
+  }
+}
