@@ -5,7 +5,8 @@ import { ExtractedMenu, ExtractedCategory, ExtractedDish } from "@/lib/types";
 import { EU_ALLERGENS } from "@/lib/allergens";
 import { AllergenBadge } from "@/components/ui/AllergenBadge";
 import { Button } from "@/components/ui/Button";
-import { Plus, Trash2, ShieldCheck, Check, Sparkles, Store, Globe } from "lucide-react";
+import { Plus, Trash2, ShieldCheck, Check, Sparkles, Store, Globe, Camera, Image as ImageIcon, Loader2, X, AlertCircle } from "lucide-react";
+import { compressDishPhoto } from "@/lib/utils/dishImageCompressor";
 
 interface MenuEditorProps {
   initialMenu: ExtractedMenu;
@@ -37,6 +38,46 @@ export const MenuEditor: React.FC<MenuEditorProps> = ({
     catIdx: number;
     dishIdx: number;
   } | null>(null);
+  const [compressingDishKey, setCompressingDishKey] = useState<string | null>(null);
+  const [photoError, setPhotoError] = useState<{ [key: string]: string }>({});
+
+  const handleDishPhotoUpload = async (
+    catIdx: number,
+    dishIdx: number,
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const dishKey = `${catIdx}-${dishIdx}`;
+    setCompressingDishKey(dishKey);
+    setPhotoError((prev) => ({ ...prev, [dishKey]: "" }));
+
+    try {
+      const res = await compressDishPhoto(file);
+      if (!res.success || !res.dataUrl) {
+        setPhotoError((prev) => ({
+          ...prev,
+          [dishKey]: res.error || "Error al procesar la fotografía.",
+        }));
+        return;
+      }
+
+      updateDish(catIdx, dishIdx, "image_url", res.dataUrl);
+    } catch {
+      setPhotoError((prev) => ({
+        ...prev,
+        [dishKey]: "Error inesperado al comprimir la foto.",
+      }));
+    } finally {
+      setCompressingDishKey(null);
+      e.target.value = "";
+    }
+  };
+
+  const removeDishPhoto = (catIdx: number, dishIdx: number) => {
+    updateDish(catIdx, dishIdx, "image_url", null);
+  };
 
   const handleSlugChange = (val: string) => {
     const clean = val
@@ -267,6 +308,69 @@ export const MenuEditor: React.FC<MenuEditorProps> = ({
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
+                  </div>
+
+                  {/* Foto del plato con compresión WebP en cliente (EPC-01 / US-101) */}
+                  <div className="pt-2 border-t border-zinc-200/60 dark:border-zinc-700/60 flex items-center justify-between gap-2 flex-wrap">
+                    <div className="flex items-center gap-2.5">
+                      {dish.image_url ? (
+                        <div className="relative group">
+                          <img
+                            src={dish.image_url}
+                            alt={dish.name_es}
+                            className="w-12 h-12 rounded-xl object-cover border border-zinc-200 dark:border-zinc-700 shadow-sm"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeDishPhoto(catIdx, dishIdx)}
+                            className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center text-[10px] shadow-sm transition-transform group-hover:scale-110"
+                            title="Eliminar foto"
+                          >
+                            <X className="w-2.5 h-2.5" />
+                          </button>
+                        </div>
+                      ) : (
+                        <label
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl border border-dashed border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs font-semibold text-zinc-600 dark:text-zinc-400 hover:text-amber-600 dark:hover:text-amber-400 hover:border-amber-500 cursor-pointer transition-colors ${
+                            compressingDishKey === `${catIdx}-${dishIdx}`
+                              ? "opacity-60 pointer-events-none"
+                              : ""
+                          }`}
+                        >
+                          {compressingDishKey === `${catIdx}-${dishIdx}` ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-600" />
+                              <span className="text-[11px]">Comprimiendo WebP...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Camera className="w-3.5 h-3.5 text-amber-600" />
+                              <span className="text-[11px]">Añadir foto plato</span>
+                            </>
+                          )}
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp,image/jpg"
+                            className="hidden"
+                            onChange={(e) => handleDishPhotoUpload(catIdx, dishIdx, e)}
+                          />
+                        </label>
+                      )}
+
+                      {dish.image_url && (
+                        <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                          <Check className="w-3.5 h-3.5" />
+                          <span>WebP &lt;100KB</span>
+                        </span>
+                      )}
+                    </div>
+
+                    {photoError[`${catIdx}-${dishIdx}`] && (
+                      <span className="text-[11px] text-red-600 dark:text-red-400 flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" />
+                        {photoError[`${catIdx}-${dishIdx}`]}
+                      </span>
+                    )}
                   </div>
 
                   {/* Alérgenos sugeridos */}

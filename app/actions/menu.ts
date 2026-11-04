@@ -72,6 +72,7 @@ export async function saveMenuAction(
           price: dish.price,
           allergens: dish.allergens || [],
           is_available: (dish as any).is_available ?? true,
+          image_url: (dish as any).image_url || null,
           order_index: dIdx,
         })),
       })),
@@ -166,6 +167,7 @@ export async function saveMenuAction(
             price: dish.price,
             allergens: dish.allergens || [],
             is_available: true,
+            image_url: (dish as any).image_url || null,
             order_index: dIndex,
           }));
 
