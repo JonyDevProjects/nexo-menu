@@ -14,7 +14,7 @@ import * as path from "node:path";
 
 interface CheckItem {
   title: string;
-  category: "Auth Resiliente" | "Guardado de Carta" | "Optimización Gemini IA" | "Contrato End-to-End" | "Persistencia Local" | "Vista Dedicada QR";
+  category: "Auth Resiliente" | "Guardado de Carta" | "Optimización Gemini IA" | "Contrato End-to-End" | "Persistencia Local" | "Vista Dedicada QR" | "Fotografía WebP (EPC-01)";
   passed: boolean;
   detail: string;
 }
@@ -238,6 +238,54 @@ function runSuite() {
     "Revalidación de caché en app/actions/menu.ts para /qr/[slug]",
     menuCode.includes("revalidatePath(`/qr/${cleanSlug}`)"),
     "saveMenuAction invalida instantáneamente la caché de la página QR al actualizar la carta"
+  );
+
+  // 7. Audit EPC-01: Client-Side WebP Dish Photography & Lightbox
+  console.log("\n--- Fase 7: Auditoría de EPC-01 (Fotografía WebP en Cliente) ---");
+  const compressorPath = path.join(cwd, "lib/utils/dishImageCompressor.ts");
+  const compressorExists = fs.existsSync(compressorPath);
+  const compressorCode = compressorExists ? fs.readFileSync(compressorPath, "utf-8") : "";
+
+  check(
+    "Fotografía WebP (EPC-01)",
+    "Utilidad cliente de compresión WebP (lib/utils/dishImageCompressor.ts)",
+    compressorExists &&
+      compressorCode.includes("compressDishPhoto") &&
+      compressorCode.includes("image/webp") &&
+      compressorCode.includes("MAX_WIDTH = 1200") &&
+      compressorCode.includes("TARGET_MAX_KB = 100"),
+    "Compresión en navegador vía Canvas API con calidad adaptable y límite <100 KB"
+  );
+
+  const editorCode = fs.readFileSync(path.join(cwd, "components/admin/MenuEditor.tsx"), "utf-8");
+  check(
+    "Fotografía WebP (EPC-01)",
+    "Integración de subida de fotos WebP en MenuEditor.tsx (US-101)",
+    editorCode.includes("compressDishPhoto") &&
+      editorCode.includes("handleDishPhotoUpload") &&
+      (editorCode.includes("WebP &lt;100KB") || editorCode.includes("WebP <100KB")),
+    "Permite a los hosteleros añadir fotos optimizadas con previsualización inmediata"
+  );
+
+  const publicMenuCode = fs.readFileSync(path.join(cwd, "components/menu/MenuPublicView.tsx"), "utf-8");
+  check(
+    "Fotografía WebP (EPC-01)",
+    "Renderizado responsivo y visor lightbox en MenuPublicView.tsx (US-102)",
+    publicMenuCode.includes("dish.image_url") &&
+      publicMenuCode.includes('loading="lazy"') &&
+      publicMenuCode.includes("lightboxDish") &&
+      publicMenuCode.includes("setLightboxDish"),
+    "Renderizado diferido con lightbox modal, alérgenos y cero salto de maquetación (CLS)"
+  );
+
+  const typesCode = fs.readFileSync(path.join(cwd, "lib/types.ts"), "utf-8");
+  check(
+    "Fotografía WebP (EPC-01)",
+    "Modelo tipológico y persistencia de image_url en schemas y actions",
+    typesCode.includes("image_url?: string | null") &&
+      typesCode.includes("image_url: z.string().optional().nullable()") &&
+      menuCode.includes("image_url: (dish as any).image_url || null"),
+    "Contrato relacional e interfaces tipológicas sincronizadas para soporte de fotos"
   );
 
   const passedCount = checks.filter((c) => c.passed).length;

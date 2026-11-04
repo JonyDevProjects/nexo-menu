@@ -2,11 +2,11 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { FullMenuData } from "@/lib/types";
+import { FullMenuData, Dish } from "@/lib/types";
 import { EU_ALLERGENS } from "@/lib/allergens";
 import { AllergenBadge } from "@/components/ui/AllergenBadge";
 import { formatPrice } from "@/lib/utils";
-import { Globe, Moon, Sun, UtensilsCrossed, AlertTriangle, Sparkles, QrCode } from "lucide-react";
+import { Globe, Moon, Sun, UtensilsCrossed, AlertTriangle, Sparkles, QrCode, X, Maximize2 } from "lucide-react";
 
 interface MenuPublicViewProps {
   data: FullMenuData;
@@ -16,6 +16,7 @@ export const MenuPublicView: React.FC<MenuPublicViewProps> = ({ data }) => {
   const [lang, setLang] = useState<"es" | "en">("es");
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [excludedAllergens, setExcludedAllergens] = useState<string[]>([]);
+  const [lightboxDish, setLightboxDish] = useState<Dish | null>(null);
 
   const toggleAllergenFilter = (code: string) => {
     if (excludedAllergens.includes(code)) {
@@ -192,8 +193,8 @@ export const MenuPublicView: React.FC<MenuPublicViewProps> = ({ data }) => {
                           }`}
                         >
                           <div className="flex items-start justify-between gap-3">
-                            <div className="space-y-1 flex-1">
-                              <div className="flex items-center gap-2">
+                            <div className="space-y-1 flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
                                 <h3 className="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100">
                                   {dishTitle}
                                 </h3>
@@ -205,17 +206,37 @@ export const MenuPublicView: React.FC<MenuPublicViewProps> = ({ data }) => {
                               </div>
 
                               {dishDesc && (
-                                <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+                                <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed line-clamp-2">
                                   {dishDesc}
                                 </p>
                               )}
+
+                              <div className="pt-0.5">
+                                <span className="text-sm sm:text-base font-black text-amber-700 dark:text-amber-400 tracking-tight">
+                                  {formatPrice(dish.price, data.restaurant.currency)}
+                                </span>
+                              </div>
                             </div>
 
-                            <div className="text-right flex-shrink-0">
-                              <span className="text-base font-black text-zinc-900 dark:text-zinc-50 tracking-tight">
-                                {formatPrice(dish.price, data.restaurant.currency)}
-                              </span>
-                            </div>
+                            {dish.image_url && (
+                              <button
+                                type="button"
+                                onClick={() => setLightboxDish(dish)}
+                                className="relative flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-700/80 bg-zinc-100 dark:bg-zinc-800 group focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-sm"
+                                title={lang === "es" ? "Pulsar para ampliar foto" : "Click to view photo"}
+                                aria-label={lang === "es" ? `Ver foto de ${dishTitle}` : `View photo of ${dishTitle}`}
+                              >
+                                <img
+                                  src={dish.image_url}
+                                  alt={dishTitle}
+                                  loading="lazy"
+                                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                />
+                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                                  <Maximize2 className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-md" />
+                                </div>
+                              </button>
+                            )}
                           </div>
 
                           {/* Alérgenos */}
@@ -260,6 +281,64 @@ export const MenuPublicView: React.FC<MenuPublicViewProps> = ({ data }) => {
             <span className="hidden sm:inline">· Crea la tuya gratis en 3 minutos</span>
           </Link>
         </footer>
+
+        {/* Modal Lightbox de Foto de Plato (EPC-01 / US-102) */}
+        {lightboxDish && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
+            onClick={() => setLightboxDish(null)}
+          >
+            <div
+              className="bg-white dark:bg-zinc-900 rounded-3xl max-w-md w-full overflow-hidden shadow-2xl border border-zinc-200 dark:border-zinc-800 space-y-4 animate-in zoom-in-95 duration-150"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="relative aspect-[16/10] w-full bg-zinc-950 overflow-hidden">
+                <img
+                  src={lightboxDish.image_url || ""}
+                  alt={lang === "en" && lightboxDish.name_en ? lightboxDish.name_en : lightboxDish.name_es}
+                  className="w-full h-full object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={() => setLightboxDish(null)}
+                  className="absolute top-3 right-3 p-2 rounded-full bg-black/60 hover:bg-black/80 text-white backdrop-blur-sm transition-colors"
+                  aria-label="Cerrar visor"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+                <div className="absolute bottom-3 left-3 px-2.5 py-1 rounded-full bg-black/60 text-white backdrop-blur-sm text-xs font-bold">
+                  {formatPrice(lightboxDish.price, data.restaurant.currency)}
+                </div>
+              </div>
+
+              <div className="p-5 pt-1 space-y-3">
+                <div className="space-y-1">
+                  <h3 className="text-lg font-black text-zinc-900 dark:text-zinc-50">
+                    {lang === "en" && lightboxDish.name_en ? lightboxDish.name_en : lightboxDish.name_es}
+                  </h3>
+                  {(lang === "en" && lightboxDish.description_en ? lightboxDish.description_en : lightboxDish.description_es) && (
+                    <p className="text-xs text-zinc-600 dark:text-zinc-300 leading-relaxed">
+                      {lang === "en" && lightboxDish.description_en ? lightboxDish.description_en : lightboxDish.description_es}
+                    </p>
+                  )}
+                </div>
+
+                {lightboxDish.allergens && lightboxDish.allergens.length > 0 && (
+                  <div className="space-y-1.5 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+                    <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider block">
+                      {lang === "es" ? "Alérgenos declarados (UE 1169/2011):" : "Declared allergens (EU 1169/2011):"}
+                    </span>
+                    <div className="flex flex-wrap gap-1">
+                      {lightboxDish.allergens.map((code) => (
+                        <AllergenBadge key={code} code={code} lang={lang} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

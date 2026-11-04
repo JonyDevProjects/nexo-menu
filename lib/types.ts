@@ -60,6 +60,7 @@ export const ExtractedDishSchema = z.preprocess((val: any) => {
       price = parseFloat(price.replace(/[^0-9.,]/g, "").replace(",", ".")) || 0;
     }
     const allergens = Array.isArray(val.allergens || val.alergenos) ? (val.allergens || val.alergenos) : [];
+    const image_url = val.image_url || null;
     return {
       ...val,
       name_es,
@@ -68,6 +69,7 @@ export const ExtractedDishSchema = z.preprocess((val: any) => {
       description_en,
       price: Number(price) || 0,
       allergens,
+      image_url,
     };
   }
   return val;
@@ -78,6 +80,7 @@ export const ExtractedDishSchema = z.preprocess((val: any) => {
   description_en: z.string().optional().nullable(),
   price: z.number().min(0, "El precio debe ser un número positivo"),
   allergens: z.array(z.string()).default([]),
+  image_url: z.string().optional().nullable(),
 }));
 
 export const ExtractedCategorySchema = z.preprocess((val: any) => {
