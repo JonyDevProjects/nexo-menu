@@ -1,9 +1,9 @@
 # ==============================================================================
-# NEXO PLATFORM - LOCAL CONTAINERIZED DEVELOPMENT ENVIRONMENT
+# NEXO MENU - DEDICATED CONTAINERIZED DEVELOPMENT ENVIRONMENT
 # Parity with Vercel Serverless & Supabase PostgreSQL (Postgres 15 + RLS + Seed)
 # ==============================================================================
 
-name: nexo
+name: nexo-menu
 
 services:
   # ----------------------------------------------------------------------------
@@ -14,7 +14,7 @@ services:
       context: .
       dockerfile: Dockerfile
       target: dev
-    container_name: nexo-app
+    container_name: nexo-menu-app
     restart: unless-stopped
     ports:
       - "${PORT:-3000}:3000"
@@ -37,24 +37,23 @@ services:
       db:
         condition: service_healthy
     networks:
-      - nexo-network
+      - nexo-menu-network
 
   # ----------------------------------------------------------------------------
   # PostgreSQL 15 Database Service (Supabase Schema & Seed Parity)
   # ----------------------------------------------------------------------------
   db:
     image: postgres:15-alpine
-    container_name: nexo-db
+    container_name: nexo-menu-db
     restart: unless-stopped
     ports:
-      # Host port default 54322 to prevent conflicts with local Postgres (5432 / 15432)
       - "${POSTGRES_PORT:-54322}:5432"
     environment:
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
       - POSTGRES_DB=${POSTGRES_DB:-postgres}
     volumes:
-      - nexo-pgdata:/var/lib/postgresql/data
+      - nexo-menu-pgdata:/var/lib/postgresql/data
       - ./docker/init-db:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
@@ -62,12 +61,12 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - nexo-network
+      - nexo-menu-network
 
 volumes:
-  nexo-pgdata:
-    name: nexo-pgdata
+  nexo-menu-pgdata:
+    name: nexo-menu-pgdata
 
 networks:
-  nexo-network:
-    name: nexo-network
+  nexo-menu-network:
+    name: nexo-menu-network

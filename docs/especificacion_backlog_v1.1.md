@@ -4,29 +4,37 @@
 
 ---
 
+> [!IMPORTANT]
+> **DIRECTIVA ESTRATÉGICA DE PRODUCTO (Stakeholder / Human — Noviembre 2026):**
+> 1. **Foco Exclusivo e Inmediato:** Se concentra el 100% de los esfuerzos del equipo en la **Épica EPC-01 (Fotografía de Platos con Compresión WebP en Cliente)**.
+> 2. **Épicas en Espera (On Hold):** Las épicas **EPC-02 (Comanda preliminar & división de cuenta)**, **EPC-03 (Maridaje inteligente)** y **EPC-04 (Menús dinámicos)** quedan pausadas y fuera del alcance actual. Se discutirán y reevaluarán tras culminar EPC-01, junto con nuevas iniciativas estratégicas que aportará el cliente.
+> 3. **Flujo de Ejecución y Entrega Acordado:**
+>    - **Fase A (Implementación):** Desarrollo de US-101 (Compresión cliente WebP) y US-102 (Renderizado responsivo y lazy shimmer) en `nexo-menu`.
+>    - **Fase B (Validación Local):** Pruebas integrales en el entorno contenedorizado Docker (`docker compose up`).
+>    - **Fase C (Despliegue Producción):** Aprovisionamiento y configuración de producción en **Supabase** y **Vercel** vinculados al nuevo repositorio satélite `https://github.com/JonyDevProjects/nexo-menu.git`.
+
 ## 1. Visión y Objetivos del Release v1.1.0
 
-El objetivo del release **v1.1.0** es transformar a Nexo Menu desde un visualizador de carta digital hiper-rápido hacia una **herramienta interactiva de sala que incremente las ventas del restaurante (upselling) y reduzca la fricción en la mesa**.
+El objetivo del release **v1.1.0** es transformar a Nexo Menu desde un visualizador de carta digital hiper-rápido hacia una **herramienta visual de alta conversión que incremente las ventas del restaurante mediante fotografía gastronómica profesional optimizada**.
 
 ### Métricas de Éxito de Producto (KPIs):
-- **Aumento del Ticket Medio:** +8% a +15% estimado mediante fotografía atractiva y recomendaciones de maridaje.
-- **Reducción del Tiempo de Atención en Mesa:** Ahorro de 2 a 3 minutos por mesa gracias a la comanda preliminar y el desglose de cuenta.
+- **Aumento del Ticket Medio:** +8% a +15% estimado mediante fotografía apetecible de platos.
 - **Rendimiento Móvil Invariable (Core Web Vitals):**
   - Largest Contentful Paint (LCP) en redes 4G móviles < 800 ms.
   - Peso máximo por imagen de plato optimizada < 100 KB.
   - First Input Delay / INP < 50 ms.
-- **Cumplimiento Legal UE 1169/2011:** 100% de los platos con información explícita de alérgenos y advertencia de contaminación cruzada.
+- **Cumplimiento Legal UE 1169/2011:** 100% de los platos con información explícita de alérgenos y advertencia de contaminación cruzada visible.
 
 ---
 
-## 2. Mapa de Epics y Priorización MoSCoW
+## 2. Mapa de Epics y Estado de Priorización
 
-| Epic ID | Título de la Épica | Prioridad MoSCoW | Valor de Negocio | Complejidad Técnica |
+| Epic ID | Título de la Épica | Estado Operativo | Valor de Negocio | Complejidad Técnica |
 | :--- | :--- | :---: | :---: | :---: |
-| **EPC-01** | **Fotografía de Platos con Compresión WebP en Cliente** | **MUST HAVE** | Altísimo (conversión visual) | Media (Canvas / Web Workers) |
-| **EPC-02** | **Comanda Preliminar en Mesa & División de Cuenta** | **MUST HAVE** | Altísimo (experiencia comensal) | Media (Zustand / LocalStorage) |
-| **EPC-03** | **Recomendaciones del Chef y Maridaje Inteligente** | **SHOULD HAVE** | Alto (upselling de bebidas/postres)| Baja-Media (Metadata y Cross-links) |
-| **EPC-04** | **Gestión de Turnos y Menús Dinámicos (Día/Noche/Finde)** | **COULD HAVE** | Medio-Alto (operatividad) | Media (Filtro por time-window) |
+| **EPC-01** | **Fotografía de Platos con Compresión WebP en Cliente** | **ACTIVA (Sprint 1 - Foco Total)** | Altísimo (conversión visual) | Media (Canvas / Web Workers) |
+| **EPC-02** | **Comanda Preliminar en Mesa & División de Cuenta** | *EN ESPERA (Post-EPC-01)* | En reevaluación estratégica | Media (Zustand / LocalStorage) |
+| **EPC-03** | **Recomendaciones del Chef y Maridaje Inteligente** | *EN ESPERA (Post-EPC-01)* | En reevaluación estratégica | Baja-Media (Metadata y Cross-links) |
+| **EPC-04** | **Gestión de Turnos y Menús Dinámicos (Día/Noche/Finde)** | *EN ESPERA (Post-EPC-01)* | En reevaluación estratégica | Media (Filtro por time-window) |
 
 ---
 
