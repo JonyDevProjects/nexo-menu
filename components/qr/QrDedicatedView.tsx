@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useRef } from "react";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 import { FullMenuData } from "@/lib/types";
+import { downloadQRAsPNG, downloadQRAsSVG, getMenuPublicUrl, printQRTemplate, useCopyUrl } from "@/lib/qr-utils";
 import { Button } from "@/components/ui/Button";
 import {
   Download,
@@ -25,80 +26,19 @@ interface QrDedicatedViewProps {
 
 export const QrDedicatedView: React.FC<QrDedicatedViewProps> = ({ data }) => {
   const qrRef = useRef<SVGSVGElement>(null);
-  const [copied, setCopied] = useState(false);
 
   const slug = data.restaurant.slug;
   const restaurantName = data.restaurant.name;
 
-  const publicUrl =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/m/${slug}`
-      : `https://nexo-menu.vercel.app/m/${slug}`;
+  const publicUrl = getMenuPublicUrl(slug);
 
-  const copyUrlToClipboard = async () => {
-    try {
-      await navigator.clipboard.writeText(publicUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
-    } catch {
-      // Fallback si clipboard falla
-      setCopied(false);
-    }
-  };
+  const [copied, copyUrl] = useCopyUrl(publicUrl);
 
-  const downloadPNG = () => {
-    const svg = qrRef.current;
-    if (!svg) return;
+  const downloadPNG = () => downloadQRAsPNG(qrRef, slug);
 
-    const svgData = new XMLSerializer().serializeToString(svg);
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-    const img = new Image();
+  const downloadSVG = () => downloadQRAsSVG(qrRef, slug);
 
-    canvas.width = 1024;
-    canvas.height = 1024;
-
-    img.onload = () => {
-      if (ctx) {
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        const pngUrl = canvas.toDataURL("image/png");
-        const a = document.createElement("a");
-        a.href = pngUrl;
-        a.download = `QR-${slug}.png`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      }
-    };
-
-    img.src =
-      "data:image/svg+xml;base64," +
-      btoa(unescape(encodeURIComponent(svgData)));
-  };
-
-  const downloadSVG = () => {
-    const svg = qrRef.current;
-    if (!svg) return;
-
-    const svgData = new XMLSerializer().serializeToString(svg);
-    const svgBlob = new Blob([svgData], {
-      type: "image/svg+xml;charset=utf-8",
-    });
-    const svgUrl = URL.createObjectURL(svgBlob);
-    const a = document.createElement("a");
-    a.href = svgUrl;
-    a.download = `QR-${slug}.svg`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(svgUrl);
-  };
-
-  const handlePrint = () => {
-    window.print();
-  };
+  const handlePrint = () => printQRTemplate();
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 transition-colors">
@@ -267,7 +207,7 @@ export const QrDedicatedView: React.FC<QrDedicatedViewProps> = ({ data }) => {
                   <Button
                     type="button"
                     variant={copied ? "primary" : "secondary"}
-                    onClick={copyUrlToClipboard}
+                    onClick={copyUrl}
                     className="text-xs px-3 py-2 h-auto flex-shrink-0"
                   >
                     {copied ? (

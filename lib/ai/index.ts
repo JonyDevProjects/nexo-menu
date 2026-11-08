@@ -21,7 +21,7 @@ export interface ExtractionOptions {
 
 export interface ExtractionResult {
   data: ExtractedMenu;
-  provider: "local" | "litert" | "gemini" | "mock";
+  provider: "local" | "litert" | "litert_hybrid" | "gemini" | "mock";
   modelName: string;
 }
 
@@ -50,7 +50,7 @@ export async function extractMenu(
     });
     return {
       data,
-      provider: "litert",
+      provider: "litert_hybrid",
       modelName: "LiteRT Híbrido (MiniCPM-V 1B + Gemma 26B)",
     };
   }
@@ -105,7 +105,7 @@ export async function extractMenu(
       const data = await extractMenuWithLiteRTHybrid(images, { visionUrl, reasoningUrl });
       return {
         data,
-        provider: "litert",
+        provider: "litert_hybrid",
         modelName: "LiteRT Híbrido (MiniCPM-V 1B + Gemma 26B)",
       };
     } else if (isVisionUp) {
