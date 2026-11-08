@@ -18,7 +18,7 @@ interface MenuEditorProps {
     legalConfirmed: boolean;
   }) => Promise<void>;
   isSaving?: boolean;
-  provider?: "local" | "litert" | "gemini" | "mock";
+  provider?: "local" | "litert" | "litert_hybrid" | "gemini" | "mock";
   modelName?: string;
 }
 
@@ -40,6 +40,26 @@ export const MenuEditor: React.FC<MenuEditorProps> = ({
   } | null>(null);
   const [compressingDishKey, setCompressingDishKey] = useState<string | null>(null);
   const [photoError, setPhotoError] = useState<{ [key: string]: string }>({});
+
+  /* ------------------------------------------------------------------ */
+  /* Deep-clones the entire menu tree (categories → dishes) so callers  */
+  /* can safely mutate without aliasing the original state reference.   */
+  /* ------------------------------------------------------------------ */
+  const cloneMenu = (source: ExtractedMenu): ExtractedMenu => ({
+    categories: source.categories.map((cat) => ({
+      name_es: cat.name_es,
+      name_en: cat.name_en,
+      dishes: cat.dishes.map((dish) => ({
+        name_es: dish.name_es,
+        name_en: dish.name_en,
+        description_es: dish.description_es,
+        description_en: dish.description_en,
+        price: dish.price,
+        allergens: Array.from(dish.allergens ?? []),
+        image_url: dish.image_url,
+      })),
+    })),
+  });
 
   const handleDishPhotoUpload = async (
     catIdx: number,
@@ -93,7 +113,7 @@ export const MenuEditor: React.FC<MenuEditorProps> = ({
     field: keyof ExtractedDish,
     value: any
   ) => {
-    const updated = { ...menu };
+    const updated = cloneMenu(menu);
     updated.categories[catIdx].dishes[dishIdx] = {
       ...updated.categories[catIdx].dishes[dishIdx],
       [field]: value,
@@ -102,7 +122,7 @@ export const MenuEditor: React.FC<MenuEditorProps> = ({
   };
 
   const toggleAllergen = (catIdx: number, dishIdx: number, allergenCode: string) => {
-    const updated = { ...menu };
+    const updated = cloneMenu(menu);
     const current = updated.categories[catIdx].dishes[dishIdx].allergens || [];
     if (current.includes(allergenCode)) {
       updated.categories[catIdx].dishes[dishIdx].allergens = current.filter(
@@ -115,13 +135,13 @@ export const MenuEditor: React.FC<MenuEditorProps> = ({
   };
 
   const removeDish = (catIdx: number, dishIdx: number) => {
-    const updated = { ...menu };
+    const updated = cloneMenu(menu);
     updated.categories[catIdx].dishes.splice(dishIdx, 1);
     setMenu(updated);
   };
 
   const addDish = (catIdx: number) => {
-    const updated = { ...menu };
+    const updated = cloneMenu(menu);
     updated.categories[catIdx].dishes.push({
       name_es: "Nuevo plato",
       name_en: "New dish",
@@ -234,7 +254,7 @@ export const MenuEditor: React.FC<MenuEditorProps> = ({
                 type="text"
                 value={cat.name_es}
                 onChange={(e) => {
-                  const updated = { ...menu };
+                  const updated = cloneMenu(menu);
                   updated.categories[catIdx].name_es = e.target.value;
                   setMenu(updated);
                 }}

@@ -6,7 +6,7 @@ import { ExtractedMenu } from "@/lib/types";
 export interface ExtractMenuActionResult {
   success: boolean;
   data?: ExtractedMenu;
-  provider?: "local" | "litert" | "gemini" | "mock";
+  provider?: "local" | "litert" | "litert_hybrid" | "gemini" | "mock";
   modelName?: string;
   error?: string;
   canFallbackToMock?: boolean;

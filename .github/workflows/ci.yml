@@ -44,6 +44,12 @@ jobs:
       - name: Lint (Next.js & ESLint)
         run: npm run lint
 
+      - name: Run Unit Tests 💡 (EGM stability sprint)
+        # NOTE: npm test script is being set up; mark optional until first passing run
+        run: npm test
+        timeout-minutes: 5
+        continue-on-error: true
+
       - name: Supabase RLS & Multi-Tenant Isolation Audit
         run: npm run test:rls
 

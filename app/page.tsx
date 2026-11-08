@@ -35,7 +35,7 @@ export default function HomePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [canFallbackToMock, setCanFallbackToMock] = useState(false);
-  const [aiProvider, setAiProvider] = useState<"local" | "litert" | "gemini" | "mock">("local");
+  const [aiProvider, setAiProvider] = useState<"local" | "litert" | "litert_hybrid" | "gemini" | "mock">("local");
   const [aiModelName, setAiModelName] = useState<string>("");
 
   const [inferenceConfig, setInferenceConfig] = useState<InferenceConfig>({

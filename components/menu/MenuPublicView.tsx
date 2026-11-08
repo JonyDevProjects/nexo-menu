@@ -228,8 +228,9 @@ export const MenuPublicView: React.FC<MenuPublicViewProps> = ({ data }) => {
                               >
                                 <img
                                   src={dish.image_url}
-                                  alt={dishTitle}
+                                  alt=""
                                   loading="lazy"
+                                  aria-hidden="true"
                                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                                 />
                                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
