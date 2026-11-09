@@ -31,7 +31,7 @@ El objetivo del release **v1.1.0** es transformar a Nexo Menu desde un visualiza
 
 | Epic ID | Título de la Épica | Estado Operativo | Valor de Negocio | Complejidad Técnica |
 | :--- | :--- | :---: | :---: | :---: |
-| **EPC-01** | **Fotografía de Platos con Compresión WebP en Cliente** | **ACTIVA (Sprint 1 - Foco Total)** | Altísimo (conversión visual) | Media (Canvas / Web Workers) |
+| **EPC-01** | **Fotografía de Platos con Compresión WebP en Cliente** | **COMPLETADA & MERGEADA (Audit EGM Sprint 0–2: 25 issues resueltos)** | Altísimo (conversión visual) | Media (Canvas / Web Workers planned) |
 | **EPC-02** | **Comanda Preliminar en Mesa & División de Cuenta** | *EN ESPERA (Post-EPC-01)* | En reevaluación estratégica | Media (Zustand / LocalStorage) |
 | **EPC-03** | **Recomendaciones del Chef y Maridaje Inteligente** | *EN ESPERA (Post-EPC-01)* | En reevaluación estratégica | Baja-Media (Metadata y Cross-links) |
 | **EPC-04** | **Gestión de Turnos y Menús Dinámicos (Día/Noche/Finde)** | *EN ESPERA (Post-EPC-01)* | En reevaluación estratégica | Media (Filtro por time-window) |

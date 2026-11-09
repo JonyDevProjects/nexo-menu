@@ -22,6 +22,23 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Shimmer skeleton placeholder for lazy image loading */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer-skeleton {
+  background: linear-gradient(90deg, var(--shimmer-base, #e4e4e7) 25%, var(--shimmer-highlight, #f4f4f5) 50%, var(--shimmer-base, #e4e4e7) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.dark .shimmer-skeleton {
+  --shimmer-base: #27272a;
+  --shimmer-highlight: #3f3f46;
+}
+
 /* Custom scrollbar for horizontal categories */
 .no-scrollbar::-webkit-scrollbar {
   display: none;

@@ -31,7 +31,7 @@ El objetivo del release **v1.1.0** es transformar a Nexo Menu desde un visualiza
 
 | Epic ID | Título de la Épica | Estado Operativo | Valor de Negocio | Complejidad Técnica |
 | :--- | :--- | :---: | :---: | :---: |
-| **EPC-01** | **Fotografía de Platos con Compresión WebP en Cliente** | **ACTIVA (Sprint 1 - Foco Total)** | Altísimo (conversión visual) | Media (Canvas / Web Workers) |
+| **EPC-01** | **Fotografía de Platos con Compresión WebP en Cliente** | **COMPLETADA & MERGEADA (Audit EGM Sprint 0–2: 25 issues resueltos)** | Altísimo (conversión visual) | Media (Canvas / Web Workers planned) |
 | **EPC-02** | **Comanda Preliminar en Mesa & División de Cuenta** | *EN ESPERA (Post-EPC-01)* | En reevaluación estratégica | Media (Zustand / LocalStorage) |
 | **EPC-03** | **Recomendaciones del Chef y Maridaje Inteligente** | *EN ESPERA (Post-EPC-01)* | En reevaluación estratégica | Baja-Media (Metadata y Cross-links) |
 | **EPC-04** | **Gestión de Turnos y Menús Dinámicos (Día/Noche/Finde)** | *EN ESPERA (Post-EPC-01)* | En reevaluación estratégica | Media (Filtro por time-window) |
@@ -212,16 +212,18 @@ Feature: Menús dinámicos por franja horaria
 
 ## 4. Requisitos No Funcionales y Criterios de Aceptación Técnicos
 
+> **Nota:** Las NFRs marcadas con `(PLANNED)` describen funcionalidad futura de épicas en espera (EPC-02/03/04). No están implementadas actualmente.
+
 1. **Rendimiento Móvil Estricto:**
-   - La inclusión de fotografías en WebP no debe elevar el First Load JS de `/m/[slug]` más allá de 160 kB gzipped.
-   - Todo procesamiento de imágenes para subida debe ejecutarse en el navegador del cliente mediante OffscreenCanvas / Web Workers para **0 coste de CPU en servidores serverless**.
-2. **Resiliencia Offline y Persistencia de Comanda:**
-   - La comanda preliminar se almacena en `localStorage` con clave indexada por `restaurant_id` y `slug` para que, en caso de corte temporal de cobertura en interiores, los platos añadidos no se borren.
+    - La inclusión de fotografías en WebP no debe elevar el First Load JS de `/m/[slug]` más allá de 160 kB gzipped.
+    - Todo procesamiento de imágenes para subida debe ejecutarse en el navegador del cliente mediante OffscreenCanvas / Web Workers para **0 coste de CPU en servidores serverless**. *(Web Workers: PLANNED — implementación actual usa Canvas en hilo principal)*
+2. **Resiliencia Offline y Persistencia de Comanda (PLANNED — EPC-02 ON HOLD):**
+    - La comanda preliminar se almacena en `localStorage` con clave indexada por `restaurant_id` y `slug` para que, en caso de corte temporal de cobertura en interiores, los platos añadidos no se borren.
 3. **Accesibilidad y Contraste WCAG 2.1 AA:**
-   - Textos sobre imágenes con contraste mínimo 4.5:1 mediante gradiente oscuro semitransparente.
-   - Botones de incremento/decremento de comanda con tamaño táctil mínimo de 44x44 px (Apple HIG).
+    - Textos sobre imágenes con contraste mínimo 4.5:1 mediante gradiente oscuro semitransparente.
+    - Botones de incremento/decremento de comanda con tamaño táctil mínimo de 44x44 px (Apple HIG). *(Comanda buttons: PLANNED — EPC-02 ON HOLD)*
 4. **Cumplimiento Legal UE 1169/2011:**
-   - La adición de fotos o notas de personalización ("sin cebolla") no exime ni altera la visualización de los 14 alérgenos declarados en el plato base.
+    - La adición de fotos o notas de personalización ("sin cebolla") no exime ni altera la visualización de los 14 alérgenos declarados en el plato base.
 
 ---
 
