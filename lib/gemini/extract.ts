@@ -199,19 +199,19 @@ export async function extractMenuFromImages(
         }...`
       );
 
-      const timeoutMs = 8000; // Timeout de 8s por modelo (max ~8 modelos → ~64s worst case, pero limitado por cascada a 45s)
-      const modelController = new AbortController();
+      const timeoutMs = 20000; // Timeout de 20s por intento con AbortController
+      const abortController = new AbortController();
       let timer: NodeJS.Timeout | null = null;
 
       const modelTimeoutPromise = new Promise<never>((_, reject) => {
         timer = setTimeout(() => {
-          modelController.abort();
+          abortController.abort();
           reject(new Error(`Timeout de ${timeoutMs}ms superado para modelo ${config.model}`));
         }, timeoutMs);
       });
 
       const requestOptions: any = {
-        signal: modelController.signal,
+        signal: abortController.signal,
         timeout: timeoutMs,
       };
       if (config.apiVersion) {

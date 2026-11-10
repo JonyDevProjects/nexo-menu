@@ -4,7 +4,7 @@ import React, { useRef } from "react";
 import Link from "next/link";
 import { QRCodeSVG } from "qrcode.react";
 import { FullMenuData } from "@/lib/types";
-import { downloadQRAsPNG, downloadQRAsSVG, getMenuPublicUrl, printQRTemplate, useCopyUrl } from "@/lib/qr-utils";
+import { downloadQRAsPNG, downloadQRAsSVG, getMenuPublicUrl, useCopyUrl } from "@/lib/qr-utils";
 import { Button } from "@/components/ui/Button";
 import {
   Download,
@@ -38,7 +38,7 @@ export const QrDedicatedView: React.FC<QrDedicatedViewProps> = ({ data }) => {
 
   const downloadSVG = () => downloadQRAsSVG(qrRef, slug);
 
-  const handlePrint = () => printQRTemplate();
+  const handlePrint = () => { window.print(); };
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 transition-colors">
