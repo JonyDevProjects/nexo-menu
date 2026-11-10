@@ -113,7 +113,28 @@ export async function saveMenuAction(
 
       const userId = user?.id || "demo-anonymous-user";
 
-      // 1. Upsert Restaurant
+      // ── Security boundary: prevent overwriting another user's restaurant ──
+      // JSDoc: A caller who knows a valid slug could otherwise force-supersede
+      //        any existing restaurant row via the upsert below. This select
+      //        ensures we reject such attempts unless the row is truly vacant
+      //        (never created before) or already belongs to the current user.
+      const { data: existingRestaurant } = await supabase
+        .from("restaurants")
+        .select("user_id")
+        .eq("slug", cleanSlug)
+        .maybeSingle();
+
+      if (existingRestaurant?.user_id && existingRestaurant.user_id !== userId) {
+        console.warn(
+          `[saveMenuAction] Ownership conflict — slug="${cleanSlug}" belongs to ${existingRestaurant.user_id}, requested by ${userId}`
+        );
+        return {
+          success: false,
+          error: "No eres el propietario de este restaurante.",
+        };
+      }
+
+      // 1. Upsert Restaurant (safe: either new slug or current user's restaurant)
       const { data: restaurant, error: resError } = await supabase
         .from("restaurants")
         .upsert(

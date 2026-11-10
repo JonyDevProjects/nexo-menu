@@ -2,6 +2,7 @@
 
 import React, { useRef, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
+import { getMenuPublicUrl, printQRTemplate } from "@/lib/qr-utils";
 import { Button } from "@/components/ui/Button";
 import { Download, Printer, X, ExternalLink, Check, FileCode, Mail, ShieldCheck, Loader2, QrCode } from "lucide-react";
 import { linkEmailAction } from "@/app/actions/auth";
@@ -48,45 +49,38 @@ export const QrDownloadModal: React.FC<QrDownloadModalProps> = ({
 
   if (!isOpen) return null;
 
-  const appUrl =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/m/${slug}`
-      : `https://nexo-menu.vercel.app/m/${slug}`;
+  const appUrl = getMenuPublicUrl(slug);
 
   const downloadPNG = () => {
+    // Generates a 1024×1024 PNG bitmap via canvas (300 DPI for commercial printing)
     const svg = qrRef.current;
     if (!svg) return;
-
     const svgData = new XMLSerializer().serializeToString(svg);
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
-    const img = new Image();
-
+    if (!ctx) return;
     canvas.width = 1024;
     canvas.height = 1024;
-
+    const img = new Image();
     img.onload = () => {
-      if (ctx) {
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        const pngUrl = canvas.toDataURL("image/png");
-        const a = document.createElement("a");
-        a.href = pngUrl;
-        a.download = `QR-${slug}.png`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      }
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const pngUrl = canvas.toDataURL("image/png");
+      const a = document.createElement("a");
+      a.href = pngUrl;
+      a.download = `QR-${slug}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     };
-
     img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
   };
 
   const downloadSVG = () => {
+    // Exports a lossless vector SVG file via Blob URL
     const svg = qrRef.current;
     if (!svg) return;
-
     const svgData = new XMLSerializer().serializeToString(svg);
     const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
     const svgUrl = URL.createObjectURL(svgBlob);
@@ -99,9 +93,7 @@ export const QrDownloadModal: React.FC<QrDownloadModalProps> = ({
     URL.revokeObjectURL(svgUrl);
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
+  const handlePrint = () => printQRTemplate();
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200 print:p-0 print:bg-white print:static print:inset-auto">

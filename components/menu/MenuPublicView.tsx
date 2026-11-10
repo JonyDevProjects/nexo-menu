@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { FullMenuData, Dish } from "@/lib/types";
 import { EU_ALLERGENS } from "@/lib/allergens";
@@ -17,6 +17,14 @@ export const MenuPublicView: React.FC<MenuPublicViewProps> = ({ data }) => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [excludedAllergens, setExcludedAllergens] = useState<string[]>([]);
   const [lightboxDish, setLightboxDish] = useState<Dish | null>(null);
+  // NXE-27: Track which dish images are currently loading (Set of IDs)
+  const [imagesLoading, setImagesLoading] = useState<Set<string>>(new Set());
+  // NXE-28: Swipe-down gesture state for lightbox close
+  const lightboxContentRef = useRef<HTMLDivElement>(null);
+  const [lightboxSwiping, setLightboxSwiping] = useState(false);
+  const touchStartRef = useRef<number>(0);
+  const currentTranslationRef = useRef<number>(0);
+  const swipeThreshold = 80; // pixels downward to trigger close
 
   const toggleAllergenFilter = (code: string) => {
     if (excludedAllergens.includes(code)) {
@@ -27,6 +35,31 @@ export const MenuPublicView: React.FC<MenuPublicViewProps> = ({ data }) => {
   };
 
   const clearFilters = () => setExcludedAllergens([]);
+
+  // NXE-27: Mark a dish image as loaded — remove from Set when onLoad fires
+  const handleImageLoaded = useCallback((dishId: string) => {
+    setImagesLoading((prev) => {
+      if (!prev.has(dishId)) return prev;
+      const next = new Set(prev);
+      next.delete(dishId);
+      return next;
+    });
+  }, []);
+
+  // Escape key cierra el lightbox abierto
+  useEffect(() => {
+    if (!lightboxDish) return;
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setLightboxDish(null);
+    };
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [lightboxDish]);
+
+  // Sincroniza <html lang> con el idioma seleccionado del menú (S4-3)
+  useEffect(() => {
+    document.documentElement.lang = lang;
+  }, [lang]);
 
   return (
     <div className={isDarkMode ? "dark" : ""}>
@@ -66,7 +99,7 @@ export const MenuPublicView: React.FC<MenuPublicViewProps> = ({ data }) => {
                 type="button"
                 onClick={() => setLang(lang === "es" ? "en" : "es")}
                 className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-xs font-semibold hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
-                aria-label="Cambiar idioma"
+                aria-label={lang === "es" ? "Cambiar a inglés" : "Cambiar a español"}
               >
                 <Globe className="w-3.5 h-3.5 text-zinc-500" />
                 <span>{lang === "es" ? "🇪🇸 ES" : "🇬🇧 EN"}</span>
@@ -76,7 +109,7 @@ export const MenuPublicView: React.FC<MenuPublicViewProps> = ({ data }) => {
                 type="button"
                 onClick={() => setIsDarkMode(!isDarkMode)}
                 className="p-1.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
-                aria-label="Alternar modo oscuro"
+                aria-label={isDarkMode ? "Activar modo claro" : "Activar modo oscuro"}
               >
                 {isDarkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
               </button>
@@ -222,15 +255,29 @@ export const MenuPublicView: React.FC<MenuPublicViewProps> = ({ data }) => {
                               <button
                                 type="button"
                                 onClick={() => setLightboxDish(dish)}
-                                className="relative flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-700/80 bg-zinc-100 dark:bg-zinc-800 group focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-sm"
+                                className="relative flex-shrink-0 w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-700/80 group focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-sm"
                                 title={lang === "es" ? "Pulsar para ampliar foto" : "Click to view photo"}
                                 aria-label={lang === "es" ? `Ver foto de ${dishTitle}` : `View photo of ${dishTitle}`}
                               >
+                                {/* NXE-27: Shimmer skeleton placeholder while image loads */}
+                                <div className={`absolute inset-0 rounded-2xl transition-opacity duration-300 ${
+                                  imagesLoading.has(dish.id)
+                                    ? "shimmer-skeleton opacity-100"
+                                    : "opacity-0 pointer-events-none"
+                                }`} />
+                                {/* Base static color behind shimmer */}
+                                <div className="absolute inset-0 rounded-2xl bg-zinc-100 dark:bg-zinc-800" />
                                 <img
                                   src={dish.image_url}
-                                  alt={dishTitle}
+                                  alt=""
                                   loading="lazy"
-                                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                  aria-hidden="true"
+                                  onLoad={() => handleImageLoaded(dish.id)}
+                                  className="w-full h-full object-cover transition-all duration-300 group-hover:scale-105"
+                                  style={{
+                                    opacity: imagesLoading.has(dish.id) ? 0 : 1,
+                                    filter: imagesLoading.has(dish.id) ? "blur(4px)" : "none",
+                                  }}
                                 />
                                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
                                   <Maximize2 className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-md" />
@@ -256,8 +303,12 @@ export const MenuPublicView: React.FC<MenuPublicViewProps> = ({ data }) => {
             );
           })}
 
-          {/* Advertencia Legal Oficial al Comensal */}
-          <div className="p-4 rounded-2xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-900/40 text-xs text-zinc-600 dark:text-zinc-400 space-y-1">
+          {/* Advertencia Legal Oficial al Comensal — role="alert" para screen readers (S4-4) */}
+          <div
+            className="p-4 rounded-2xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-900/40 text-xs text-zinc-600 dark:text-zinc-400 space-y-1"
+            role="alert"
+            aria-live="polite"
+          >
             <p className="font-semibold text-amber-900 dark:text-amber-300 flex items-center gap-1.5">
               <AlertTriangle className="w-3.5 h-3.5" />
               {lang === "es" ? "Información sobre Alérgenos:" : "Allergen Information:"}
@@ -282,15 +333,75 @@ export const MenuPublicView: React.FC<MenuPublicViewProps> = ({ data }) => {
           </Link>
         </footer>
 
-        {/* Modal Lightbox de Foto de Plato (EPC-01 / US-102) */}
+        {/* Modal Lightbox de Foto de Plato (EPC-01 / US-102) — accesible con role="dialog" */}
         {lightboxDish && (
           <div
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
             onClick={() => setLightboxDish(null)}
+            role="dialog"
+            aria-modal="true"
+            aria-label={
+              lang === "en"
+                ? `Photo of ${lightboxDish.name_en || lightboxDish.name_es}`
+                : `Foto de ${lightboxDish.name_es}`
+            }
           >
             <div
-              className="bg-white dark:bg-zinc-900 rounded-3xl max-w-md w-full overflow-hidden shadow-2xl border border-zinc-200 dark:border-zinc-800 space-y-4 animate-in zoom-in-95 duration-150"
+              ref={lightboxContentRef}
+              className={`bg-white dark:bg-zinc-900 rounded-3xl max-w-md w-full overflow-hidden shadow-2xl border border-zinc-200 dark:border-zinc-800 space-y-4 animate-in zoom-in-95 duration-150 ${
+                lightboxSwiping ? "transition-transform duration-100" : ""
+              }`}
               onClick={(e) => e.stopPropagation()}
+              onTouchStart={(e) => {
+                const touch = e.touches[0];
+                // Only start swipe from top ~40% of screen — avoids conflict with scrolling content below
+                if (touch.clientY > window.innerHeight * 0.4) return;
+                touchStartRef.current = touch.clientY;
+                currentTranslationRef.current = 0;
+                setLightboxSwiping(true);
+              }}
+              onTouchMove={(e) => {
+                if (!lightboxSwiping || !lightboxContentRef.current) return;
+                const touch = e.touches[0];
+                const deltaY = touch.clientY - touchStartRef.current;
+                // Only allow downward swipes
+                if (deltaY <= 0) return;
+                const translation = Math.min(deltaY * 0.4, swipeThreshold * 0.6);
+                currentTranslationRef.current = translation;
+                lightboxContentRef.current.style.transform = `translateY(${translation}px)`;
+                lightboxContentRef.current.style.opacity = `${1 - (deltaY / swipeThreshold) * 0.4}`;
+              }}
+              onTouchEnd={() => {
+                if (!lightboxContentRef.current) {
+                  setLightboxSwiping(false);
+                  return;
+                }
+                const el = lightboxContentRef.current;
+                const translation = currentTranslationRef.current;
+                if (translation >= swipeThreshold * 0.6) {
+                  // Swipe past threshold → close with animation
+                  el.style.transition = 'transform 0.25s ease-out, opacity 0.25s ease-out';
+                  el.style.transform = 'translateY(100%)';
+                  el.style.opacity = '0';
+                  setTimeout(() => {
+                    setLightboxDish(null);
+                    el.style.transition = '';
+                    el.style.transform = '';
+                    el.style.opacity = '';
+                  }, 250);
+                } else {
+                  // Not enough distance → snap back
+                  el.style.transition = 'transform 0.2s ease-out, opacity 0.2s ease-out';
+                  el.style.transform = 'translateY(0)';
+                  el.style.opacity = '1';
+                  setTimeout(() => {
+                    el.style.transition = '';
+                    el.style.transform = '';
+                    el.style.opacity = '';
+                  }, 200);
+                }
+                setLightboxSwiping(false);
+              }}
             >
               <div className="relative aspect-[16/10] w-full bg-zinc-950 overflow-hidden">
                 <img
@@ -301,7 +412,7 @@ export const MenuPublicView: React.FC<MenuPublicViewProps> = ({ data }) => {
                 <button
                   type="button"
                   onClick={() => setLightboxDish(null)}
-                  className="absolute top-3 right-3 p-2 rounded-full bg-black/60 hover:bg-black/80 text-white backdrop-blur-sm transition-colors"
+                  className="absolute top-3 right-3 p-2 rounded-full bg-black/60 hover:bg-black/80 text-white backdrop-blur-sm transition-colors focus:outline-none focus:ring-2 focus:ring-white"
                   aria-label="Cerrar visor"
                 >
                   <X className="w-4 h-4" />

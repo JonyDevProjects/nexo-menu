@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ExtractedMenu, ExtractedCategory, ExtractedDish } from "@/lib/types";
 import { EU_ALLERGENS } from "@/lib/allergens";
 import { AllergenBadge } from "@/components/ui/AllergenBadge";
@@ -18,7 +18,7 @@ interface MenuEditorProps {
     legalConfirmed: boolean;
   }) => Promise<void>;
   isSaving?: boolean;
-  provider?: "local" | "litert" | "gemini" | "mock";
+  provider?: "local" | "litert" | "litert_hybrid" | "gemini" | "mock";
   modelName?: string;
 }
 
@@ -34,12 +34,33 @@ export const MenuEditor: React.FC<MenuEditorProps> = ({
   const [slug, setSlug] = useState("mi-restaurante");
   const [description, setDescription] = useState("Tapas, raciones y comida casera.");
   const [legalConfirmed, setLegalConfirmed] = useState(false);
+  const [legalError, setLegalError] = useState("");
   const [activeAllergenModal, setActiveAllergenModal] = useState<{
     catIdx: number;
     dishIdx: number;
   } | null>(null);
   const [compressingDishKey, setCompressingDishKey] = useState<string | null>(null);
   const [photoError, setPhotoError] = useState<{ [key: string]: string }>({});
+
+  /* ------------------------------------------------------------------ */
+  /* Deep-clones the entire menu tree (categories → dishes) so callers  */
+  /* can safely mutate without aliasing the original state reference.   */
+  /* ------------------------------------------------------------------ */
+  const cloneMenu = (source: ExtractedMenu): ExtractedMenu => ({
+    categories: source.categories.map((cat) => ({
+      name_es: cat.name_es,
+      name_en: cat.name_en,
+      dishes: cat.dishes.map((dish) => ({
+        name_es: dish.name_es,
+        name_en: dish.name_en,
+        description_es: dish.description_es,
+        description_en: dish.description_en,
+        price: dish.price,
+        allergens: Array.from(dish.allergens ?? []),
+        image_url: dish.image_url,
+      })),
+    })),
+  });
 
   const handleDishPhotoUpload = async (
     catIdx: number,
@@ -87,13 +108,23 @@ export const MenuEditor: React.FC<MenuEditorProps> = ({
     setSlug(clean);
   };
 
+  // Escape key cierra el modal de alérgenos abierto
+  useEffect(() => {
+    if (!activeAllergenModal) return;
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setActiveAllergenModal(null);
+    };
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [activeAllergenModal]);
+
   const updateDish = (
     catIdx: number,
     dishIdx: number,
     field: keyof ExtractedDish,
     value: any
   ) => {
-    const updated = { ...menu };
+    const updated = cloneMenu(menu);
     updated.categories[catIdx].dishes[dishIdx] = {
       ...updated.categories[catIdx].dishes[dishIdx],
       [field]: value,
@@ -102,7 +133,7 @@ export const MenuEditor: React.FC<MenuEditorProps> = ({
   };
 
   const toggleAllergen = (catIdx: number, dishIdx: number, allergenCode: string) => {
-    const updated = { ...menu };
+    const updated = cloneMenu(menu);
     const current = updated.categories[catIdx].dishes[dishIdx].allergens || [];
     if (current.includes(allergenCode)) {
       updated.categories[catIdx].dishes[dishIdx].allergens = current.filter(
@@ -115,13 +146,13 @@ export const MenuEditor: React.FC<MenuEditorProps> = ({
   };
 
   const removeDish = (catIdx: number, dishIdx: number) => {
-    const updated = { ...menu };
+    const updated = cloneMenu(menu);
     updated.categories[catIdx].dishes.splice(dishIdx, 1);
     setMenu(updated);
   };
 
   const addDish = (catIdx: number) => {
-    const updated = { ...menu };
+    const updated = cloneMenu(menu);
     updated.categories[catIdx].dishes.push({
       name_es: "Nuevo plato",
       name_en: "New dish",
@@ -135,9 +166,10 @@ export const MenuEditor: React.FC<MenuEditorProps> = ({
 
   const handleSaveClick = async () => {
     if (!legalConfirmed) {
-      alert("Debes marcar la casilla de verificación legal de alérgenos para publicar.");
+      setLegalError("Debes marcar la casilla de verificación legal de alérgenos para publicar.");
       return;
     }
+    setLegalError("");
     await onSave({
       restaurantName,
       slug,
@@ -228,16 +260,17 @@ export const MenuEditor: React.FC<MenuEditorProps> = ({
             key={catIdx}
             className="bg-white dark:bg-zinc-900 rounded-3xl p-5 border border-zinc-200 dark:border-zinc-800 shadow-sm space-y-4"
           >
-            {/* Nombre de la categoría */}
+            {/* Nombre de la categoría — S4-1: sr-only label */}
             <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
               <input
                 type="text"
                 value={cat.name_es}
                 onChange={(e) => {
-                  const updated = { ...menu };
+                  const updated = cloneMenu(menu);
                   updated.categories[catIdx].name_es = e.target.value;
                   setMenu(updated);
                 }}
+                aria-label={`Nombre de la categoría ${cat.name_es}` || "Nombre de categoría"}
                 className="text-base font-bold text-zinc-900 dark:text-zinc-100 bg-transparent focus:outline-none focus:underline"
               />
               <span className="text-xs text-zinc-400">
@@ -261,6 +294,7 @@ export const MenuEditor: React.FC<MenuEditorProps> = ({
                           updateDish(catIdx, dishIdx, "name_es", e.target.value)
                         }
                         placeholder="Nombre del plato"
+                        aria-label={`Nombre del plato ${dish.name_es || ""}` || "Nombre del plato"}
                         className="w-full text-sm font-semibold text-zinc-900 dark:text-zinc-100 bg-transparent focus:outline-none"
                       />
                       <input
@@ -270,6 +304,7 @@ export const MenuEditor: React.FC<MenuEditorProps> = ({
                           updateDish(catIdx, dishIdx, "description_es", e.target.value)
                         }
                         placeholder="Descripción o ingredientes"
+                        aria-label={`Descripción del plato ${dish.name_es || ""}` || "Descripción del plato"}
                         className="w-full text-xs text-zinc-500 dark:text-zinc-400 bg-transparent focus:outline-none"
                       />
                       {dish.name_en && (
@@ -294,6 +329,7 @@ export const MenuEditor: React.FC<MenuEditorProps> = ({
                               parseFloat(e.target.value) || 0
                             )
                           }
+                          aria-label={`Precio de ${dish.name_es || ""}`}
                           className="w-14 text-sm font-bold text-right bg-transparent focus:outline-none"
                         />
                         <span className="text-xs font-semibold text-zinc-500">€</span>
@@ -416,9 +452,15 @@ export const MenuEditor: React.FC<MenuEditorProps> = ({
         ))}
       </div>
 
-      {/* Modal / Selector de alérgenos */}
+      {/* Modal / Selector de alérgenos — accesible con role="dialog" */}
       {activeAllergenModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150"
+          onClick={() => setActiveAllergenModal(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Seleccionar Alérgenos (Reglamento UE)"
+        >
           <div className="bg-white dark:bg-zinc-900 rounded-3xl p-6 max-w-md w-full shadow-2xl border border-zinc-200 dark:border-zinc-800 space-y-4">
             <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">
               Seleccionar Alérgenos (Reglamento UE)
@@ -471,13 +513,18 @@ export const MenuEditor: React.FC<MenuEditorProps> = ({
         </div>
       )}
 
-      {/* Cláusula Legal Obligatoria */}
+      {/* Cláusula Legal Obligatoria — S4-5: inline error con aria-invalid + aria-describedby */}
       <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 flex items-start gap-3">
         <input
           type="checkbox"
           id="legalCheck"
           checked={legalConfirmed}
-          onChange={(e) => setLegalConfirmed(e.target.checked)}
+          onChange={(e) => {
+            setLegalConfirmed(e.target.checked);
+            setLegalError("");
+          }}
+          aria-invalid={!!legalError}
+          aria-describedby={legalError ? "legal-error" : undefined}
           className="mt-1 h-5 w-5 rounded border-amber-300 text-amber-600 focus:ring-amber-500"
         />
         <label
@@ -493,6 +540,13 @@ export const MenuEditor: React.FC<MenuEditorProps> = ({
           responsabilidad legal ante los clientes.
         </label>
       </div>
+
+      {/* S4-5: Mensaje de error inline reemplaza window.alert */}
+      {legalError && (
+        <p id="legal-error" className="px-4 text-xs font-semibold text-red-600 dark:text-red-400" role="alert">
+          {legalError}
+        </p>
+      )}
 
       {/* Barra fija inferior con botón primario */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-md border-t border-zinc-200 dark:border-zinc-800 z-40 max-w-xl mx-auto flex items-center justify-between gap-3">

@@ -169,11 +169,29 @@ export async function extractMenuFromImages(
   // 2. Resolver candidatos ordenados
   const candidateConfigs = resolveCandidateModels(availableModels, modelOverride);
 
+  // 3. Global cascade timeout (~45s total para toda la cascada)
+  const cascadeController = new AbortController();
+  const cascadeTimeoutMs = 45000;
+  let cascadeTimer: NodeJS.Timeout | null = null;
+
+  const cascadeTimeoutPromise = new Promise<never>((_, reject) => {
+    cascadeTimer = setTimeout(() => {
+      cascadeController.abort();
+      reject(new Error(`Timeout global de cascada: ${cascadeTimeoutMs}ms excedido`));
+    }, cascadeTimeoutMs);
+  });
+
   let lastError: any = null;
   let successfulResult: GeminiExtractionResult | null = null;
 
-  // 3. Cascada de ejecución con autorrecuperación
+  // 4. Cascada de ejecución con autorrecuperación
   for (const config of candidateConfigs) {
+    // Verificar si la cascada global fue abortada
+    if (cascadeController.signal.aborted) {
+      console.warn("[Gemini] Cascada abortada por timeout global");
+      break;
+    }
+
     try {
       console.log(
         `[Gemini] Ejecutando extracción con modelo: ${config.model}${
@@ -181,11 +199,11 @@ export async function extractMenuFromImages(
         }...`
       );
 
-      const timeoutMs = 20000; // Timeout estricto de 20s por intento (SLA < 60s total)
+      const timeoutMs = 20000; // Timeout de 20s por intento con AbortController
       const abortController = new AbortController();
       let timer: NodeJS.Timeout | null = null;
 
-      const timeoutPromise = new Promise<never>((_, reject) => {
+      const modelTimeoutPromise = new Promise<never>((_, reject) => {
         timer = setTimeout(() => {
           abortController.abort();
           reject(new Error(`Timeout de ${timeoutMs}ms superado para modelo ${config.model}`));
@@ -217,7 +235,7 @@ export async function extractMenuFromImages(
       const generatePromise = model.generateContent([prompt, ...imageParts]);
       let result: any;
       try {
-        result = await Promise.race([generatePromise, timeoutPromise]);
+        result = await Promise.race([generatePromise, modelTimeoutPromise, cascadeTimeoutPromise]);
       } finally {
         if (timer) clearTimeout(timer);
       }
@@ -269,6 +287,9 @@ export async function extractMenuFromImages(
       continue;
     }
   }
+
+  // Limpiar timer de cascada al salir
+  if (cascadeTimer) clearTimeout(cascadeTimer);
 
   if (successfulResult) {
     return successfulResult;
