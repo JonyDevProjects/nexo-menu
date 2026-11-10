@@ -72,6 +72,28 @@ function setWritePromise(p: Promise<void> | null): void {
   writePromise = p;
 }
 
+// ── Read-only filesystem detection ───────────────────────────────────────
+// In serverless / container runtimes (Vercel, Docker) the task directory is
+// read-only. We probe once on first write attempt and remember the result so
+// subsequent calls skip the disk path immediately.
+let writableDiskCacheFlag: "writable" | "readonly" | null = null;
+
+function isDiskWritable(): boolean {
+  if (writableDiskCacheFlag !== null) {
+    return writableDiskCacheFlag === "writable";
+  }
+  try {
+    const testFile = `${process.cwd()}/data/.local_write_test`;
+    fs.writeFileSync(testFile, "ok", "utf-8");
+    fs.unlinkSync(testFile);
+    writableDiskCacheFlag = "writable";
+    return true;
+  } catch {
+    writableDiskCacheFlag = "readonly";
+    return false;
+  }
+}
+
 // ── Atomic JSON writer (temp file + verify + rename) ────────────────────────
 /**
  * Writes JSON content to *filePath* using an atomic temp-file-then-rename
@@ -210,6 +232,15 @@ export async function saveLocalMenu(menu: FullMenuData): Promise<void> {
   ensureLoaded();
   inMemoryStore.set(slug, menu);
 
+  // Skip disk write in read-only environments (Vercel serverless, Docker).
+  // In-memory data persists for the lifetime of the process/edge function.
+  if (!isDiskWritable()) {
+    console.warn(
+      `[LocalStore] Disk is read-only (serverless/container). Menu '${slug}' saved in memory only.`
+    );
+    return;
+  }
+
   // If a write is already in progress, coalesce into that one and return
   // the existing promise — avoids N+1 reload/write cycles.
   const existing = getWritePromise();
@@ -264,11 +295,16 @@ export async function saveLocalMenu(menu: FullMenuData): Promise<void> {
  * @throws `{Error}` When the write or verification step fails.
  */
 export function saveLocalMenuSync(menu: FullMenuData): void {
-  // We run the async operation synchronously by awaiting nothing
-  // and reading/writing via sync fs calls (the internal helpers are sync).
-  // In practice this reuses the same logic without the queue machinery.
   ensureLoaded();
   inMemoryStore.set(menu.restaurant.slug, menu);
+
+  // Skip disk write in read-only environments (Vercel serverless, Docker).
+  if (!isDiskWritable()) {
+    console.warn(
+      `[LocalStore] Disk is read-only (serverless/container). Menu '${menu.restaurant.slug}' saved in memory only.`
+    );
+    return;
+  }
 
   const currentIndex: MenuIndex = {};
   for (const [s, m] of inMemoryStore.entries()) {
