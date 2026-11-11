@@ -125,18 +125,15 @@ function writeJsonAtomically<T>(
   // 1. Write to temporary file.
   fs.writeFileSync(tmpPath, serialized, "utf-8");
 
-  // 2. Verify by re-reading & parsing.
+  // 2. Verify by re-reading & parsing (no cleanup needed — rename will handle tmpPath).
   let verified: T;
   try {
     const verifiedRaw = fs.readFileSync(tmpPath, "utf-8");
     verified = JSON.parse(verifiedRaw);
-  } finally {
-    // Best-effort cleanup of the temp file regardless of verify outcome.
-    try {
-      fs.unlinkSync(tmpPath);
-    } catch {
-      /* ignore – orphaned temp files are harmless */
-    }
+  } catch {
+    throw new Error(
+      `[LocalStore] Verification failed reading ${tmpPath} after successful write.`
+    );
   }
 
   // Compare the round-trip with the original value so a silent data-loss
@@ -148,7 +145,15 @@ function writeJsonAtomically<T>(
   }
 
   // 3. Atomic rename into the target location.
-  fs.renameSync(tmpPath, filePath);
+  try {
+    fs.renameSync(tmpPath, filePath);
+  } catch (err) {
+    throw new Error(
+      `[LocalStore] Failed to rename temp file to ${filePath}: ${
+        err instanceof Error ? err.message : String(err)
+      }`
+    );
+  }
 }
 
 // ── Sync reader helpers ─────────────────────────────────────────────────────
