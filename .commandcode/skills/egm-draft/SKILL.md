@@ -148,7 +148,7 @@ answering to. This step is about hidden obligations, not about content.
 2.  **Call the memory engine** for each candidate file:
     *   **Preferred**: the MCP tool `memory_trace` with the file path as
         `entity`.
-    *   **Fallback**: `npm run palace -- trace "<ruta>" --depth 2`.
+    *   **Fallback**: `npx nexo-palace trace "<ruta>" --depth 2`.
 3.  **Read the subgraph and carry these into the draft**:
     *   `requirements` — the requirement IDs the file implements. The design
         document must state which requirement each section satisfies.

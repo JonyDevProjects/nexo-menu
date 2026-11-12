@@ -190,7 +190,7 @@ so the next agent inherits it instead of rediscovering it.
         (what problem forced the choice), `decision` (what was chosen and
         why), `tags`, and `relatedFiles` (the files and requirement IDs
         involved).
-    *   **Fallback**: `npm run palace -- decide --context "<...>" --decision
+    *   **Fallback**: `npx nexo-palace decide --context "<...>" --decision
         "<...>"`.
 3.  **Confirm the write** by reading back the episode id the engine returns.
    Report that id in the chat, not the whole decision text.

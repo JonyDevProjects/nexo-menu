@@ -44,13 +44,13 @@ implement the specifications described by those designs or READMEs.
 
 4.  **Report**: Produce a single report listing all discrepancies found.
 
-    *   **Nexo-Palace Engine (preferred)**: run `npm run palace -- drift`
+    *   **Nexo-Palace Engine (preferred)**: run `npx nexo-palace drift`
         from the repository root. It compares the code changed in Git against
         the requirements linked to that code in the traceability graph, and
         marks the affected requirements as `NEEDS_REVIEW`. Use its output as
         the authoritative list of drift, and run the manual analysis below only
         for the documents it does not cover.
-    *   Run `npm run palace -- query "<document name>" --scope doc` to pull the
+    *   Run `npx nexo-palace query "<document name>" --scope doc` to pull the
         current specification text instead of reading the file linearly.
 
     *   Append the analysis for each file to `{YYYY-MM-DD}_DRIFT_REPORT.md`

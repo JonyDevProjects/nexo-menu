@@ -110,7 +110,7 @@ prevents proposing work that was already specified, decided, or rejected.
     and note that fact in the brief):
     *   **Preferred**: the MCP tool `memory_query` from the `nexo-palace`
         server.
-    *   **Fallback**: `npm run palace -- query "<terms>" --limit 8` from the
+    *   **Fallback**: `npx nexo-palace query "<terms>" --limit 8` from the
         repository root.
 2.  **Query with the feature's own vocabulary**: the user's terms, the domain
     nouns, and any identifier that appeared in the request (for example

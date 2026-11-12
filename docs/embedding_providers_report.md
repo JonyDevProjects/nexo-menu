@@ -1,8 +1,8 @@
-# Comparativa de proveedores de embeddings — Nexo-Palace Engine
+# Comparativa de proveedores de embeddings — Nexo-Palace
 
 **Fecha:** 2026-11-12
 **Alcance:** evaluación de las opciones de embedding local con el motor LiteRT frente a las ya implementadas (API de Gemini y proveedor offline léxico).
-**Reproducible con:** `npm run palace:bench` (construye un índice por proveedor y lanza el mismo conjunto de consultas).
+**Reproducible con:** `npx nexo-palace bench` desde el repositorio de la herramienta (`nexo-palace`), que construye un índice por proveedor y lanza el mismo conjunto de consultas.
 
 ## Conclusión
 
