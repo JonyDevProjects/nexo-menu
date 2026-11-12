@@ -44,6 +44,14 @@ implement the specifications described by those designs or READMEs.
 
 4.  **Report**: Produce a single report listing all discrepancies found.
 
+    *   Start from the requirements touched by the change: grep `docs/` for
+        the requirement IDs whose status is `NEEDS_REVIEW` and compare them
+        against the code changed in Git. Use that as the initial list of
+        drift, and run the manual analysis below for the documents it does
+        not cover.
+    *   Pull the current specification text of each affected document from
+        `docs/` instead of reading the files linearly.
+
     *   Append the analysis for each file to `{YYYY-MM-DD}_DRIFT_REPORT.md`
         using your file-writing tool.
     *   Strict Format:

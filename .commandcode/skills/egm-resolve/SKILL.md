@@ -177,6 +177,20 @@ Interpret the user's action/response as follows:
 -   **Custom instruction / Out-of-band edit**: If the user provides targeted
     instructions, apply them and proceed.
 
+### Step 4.5: Record the Decision
+
+A resolution that settled a non-obvious choice is project knowledge. Record it
+so the next agent inherits it instead of rediscovering it.
+
+1.  **Decide what is worth recording**: a decision that changed behaviour,
+    fixed a convention, or resolved a contested finding. Skip trivial
+    formatting fixes.
+2.  **Write the entry** in `.commandcode/taste/decisions.md` with the context
+    (what problem forced the choice), the decision (what was chosen and why),
+    and the related files and requirement IDs involved.
+3.  **Confirm the write** by reading the entry back from the file. Report the
+   date of the entry in the chat, not the whole decision text.
+
 ### Step 5: Post-Resolution Synchronization & Exit
 
 1.  **Re-verify Lines**: If changes were made to `TargetFile`, verify that the

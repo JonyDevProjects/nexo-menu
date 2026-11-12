@@ -138,6 +138,30 @@ this strict generation order:
         or here in chat) so I can revise the draft."` and yield active execution
         to wait for user clarification in chat.
 
+### Step 0: Trace the Files the Draft Will Touch
+
+Before drafting the technical plan, establish what the draft's code will be
+answering to. This step is about hidden obligations, not about content.
+
+1.  **Identify the candidate files** from the ingested brief: the modules the
+    feature touches, plus the modules that import them.
+2.  **Trace each candidate file with the repository itself**:
+    *   `requirements` — the requirement IDs the file implements, found by
+        grepping `docs/`. The design document must state which requirement
+        each section satisfies.
+    *   `tests` — the tests under `tests/`, `test/` and `e2e/` that cover the
+        file. If there are none, the draft must specify the test that will
+        cover the new behaviour.
+    *   `documents` — the documents under `docs/` that already describe the
+        file. Reuse their terminology instead of inventing new names.
+    *   `dependencies` / `dependents` — the modules whose behaviour the change
+        can break. List them in the risk section.
+    *   `taste` — the conventions in `.commandcode/taste/` that bind the file.
+        Quote the specific convention, not a paraphrase.
+3.  **Do not proceed to Step 2 without the trace result** for at least the
+    primary file. If the traceability cannot be established, say so in the
+    draft's "Context" section instead of inventing traceability.
+
 ### Step 1: Ingest Predecessor Context (Concepts Brief or Notes)
 
 1.  **Context File**: If `Context File` is specified, read and parse it directly.
