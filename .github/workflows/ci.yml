@@ -29,6 +29,15 @@ jobs:
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
+      # Nexo-Palace es una dependencia local (`file:../nexo-palace`): el motor de
+      # memoria vive en su propio repositorio y este lo consume desde ahí.
+      # Sin este checkout, `npm ci` instalaría un symlink colgante.
+      - name: Checkout Nexo-Palace
+        uses: actions/checkout@v4
+        with:
+          repository: JonyDevProjects/nexo-palace
+          path: ../nexo-palace
+
       - name: Setup Node.js 22 LTS
         uses: actions/setup-node@v4
         with:
@@ -37,6 +46,13 @@ jobs:
 
       - name: Install Dependencies
         run: npm ci
+
+      # npm no instala las dependencias de un paquete enlazado por `file:` en
+      # su propio directorio: hay que instalarlas allí para que el motor
+      # funcione (better-sqlite3, sqlite-vec, ts-morph).
+      - name: Install Nexo-Palace Dependencies
+        run: npm ci
+        working-directory: ../nexo-palace
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
