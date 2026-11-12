@@ -16,6 +16,9 @@ const OLLAMA_BASE_URL = process.env.OLLAMA_BASE_URL || "http://127.0.0.1:11434";
 
 const VISION_MODEL = process.env.LITERT_VISION_MODEL || "qwen3-vl:8B";
 const REASONING_MODEL = process.env.LITERT_REASONING_MODEL || "gemma4:26b-a4b-it-q4_K_M";
+// Modelo de embedding local (LiteRT/Ollama). Es el que usa el Nexo-Palace
+// Engine para el índice vectorial sin salir de la máquina.
+const EMBEDDING_MODEL = process.env.LITERT_EMBEDDING_MODEL || "nomic-embed-text";
 
 function sendJson(res: http.ServerResponse, statusCode: number, data: any) {
   res.writeHead(statusCode, {
@@ -170,8 +173,55 @@ const reasoningServer = http.createServer(async (req, res) => {
       data: [
         { id: "gemma4-26b", object: "model" },
         { id: "gemma4:26b-a4b-it-q4_K_M", object: "model" },
+        { id: EMBEDDING_MODEL, object: "model", type: "embedding" },
       ],
     });
+  }
+
+  // Embeddings locales (compatible con la API de OpenAI).
+  if (req.url === "/v1/embeddings" && req.method === "POST") {
+    let body = "";
+    req.on("data", (chunk) => (body += chunk));
+    req.on("end", async () => {
+      try {
+        const payload = JSON.parse(body);
+        const rawInput = payload.input ?? payload.text ?? "";
+        const inputs: string[] = Array.isArray(rawInput)
+          ? rawInput.map((t: unknown) => String(t))
+          : [String(rawInput)];
+
+        console.log(
+          `[LiteRT-Embedding :11435] Calculando ${inputs.length} embedding(s) con ${EMBEDDING_MODEL}...`,
+        );
+
+        const ollamaRes = await fetch(`${OLLAMA_BASE_URL}/api/embed`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ model: payload.model || EMBEDDING_MODEL, input: inputs }),
+        });
+
+        if (!ollamaRes.ok) {
+          const detail = await ollamaRes.text().catch(() => "");
+          return sendJson(res, ollamaRes.status, {
+            error: `Ollama embeddings HTTP ${ollamaRes.status}: ${detail.slice(0, 300)}`,
+          });
+        }
+
+        const ollamaJson = (await ollamaRes.json()) as { embeddings?: number[][] };
+        const embeddings = ollamaJson.embeddings ?? [];
+
+        return sendJson(res, 200, {
+          object: "list",
+          model: payload.model || EMBEDDING_MODEL,
+          data: embeddings.map((embedding, index) => ({ object: "embedding", index, embedding })),
+          usage: { prompt_tokens: 0, total_tokens: 0 },
+        });
+      } catch (err: any) {
+        console.error("[LiteRT-Embedding :11435] Error:", err?.message || err);
+        return sendJson(res, 500, { error: err?.message || "Error generating embeddings" });
+      }
+    });
+    return;
   }
 
   if (req.url === "/v1/chat/completions" && req.method === "POST") {
