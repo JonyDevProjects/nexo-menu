@@ -177,6 +177,24 @@ Interpret the user's action/response as follows:
 -   **Custom instruction / Out-of-band edit**: If the user provides targeted
     instructions, apply them and proceed.
 
+### Step 4.5: Record the Decision (Nexo-Palace Engine)
+
+A resolution that settled a non-obvious choice is project knowledge. Record it
+so the next agent inherits it instead of rediscovering it.
+
+1.  **Decide what is worth recording**: a decision that changed behaviour,
+    fixed a convention, or resolved a contested finding. Skip trivial
+    formatting fixes.
+2.  **Call the memory engine**:
+    *   **Preferred**: the MCP tool `memory_record_decision` with `context`
+        (what problem forced the choice), `decision` (what was chosen and
+        why), `tags`, and `relatedFiles` (the files and requirement IDs
+        involved).
+    *   **Fallback**: `npm run palace -- decide --context "<...>" --decision
+        "<...>"`.
+3.  **Confirm the write** by reading back the episode id the engine returns.
+   Report that id in the chat, not the whole decision text.
+
 ### Step 5: Post-Resolution Synchronization & Exit
 
 1.  **Re-verify Lines**: If changes were made to `TargetFile`, verify that the

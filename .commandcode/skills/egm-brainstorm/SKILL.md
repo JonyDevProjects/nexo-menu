@@ -101,6 +101,35 @@ If your harness has no subagent tool, stop and tell the user: a review in the sa
 
 ## Execution Workflow
 
+### Step 0: Retrieve Project Memory (Nexo-Palace Engine)
+
+Before asking the user anything, retrieve what the project already knows. This
+prevents proposing work that was already specified, decided, or rejected.
+
+1.  **Call the memory engine** (skip this step if the engine is not available
+    and note that fact in the brief):
+    *   **Preferred**: the MCP tool `memory_query` from the `nexo-palace`
+        server.
+    *   **Fallback**: `npm run palace -- query "<terms>" --limit 8` from the
+        repository root.
+2.  **Query with the feature's own vocabulary**: the user's terms, the domain
+    nouns, and any identifier that appeared in the request (for example
+    `EPC-02`, `MenuEditor`, `alérgenos`).
+3.  **Read the results as constraints, not as suggestions**:
+    *   A requirement in `docs/` with status `done` is finished work. Do not
+        propose it again.
+    *   A requirement with status `on_hold` was explicitly deferred. Either
+        ask why the deferral no longer holds or leave it alone.
+    *   A requirement with status `NEEDS_REVIEW` means the code changed under
+        it. Surface it as a risk before proposing related work.
+    *   A convention recorded in `.commandcode/taste/` is binding. Do not
+        re-litigate it; follow it, or state clearly why it no longer
+        applies.
+4.  **Cite what you found** in `concepts_brief.md` under a
+    `## Retrieved Project Context` heading, listing the requirement IDs, their
+    status, and the source file. If the retrieval returned nothing relevant,
+    say so explicitly rather than staying silent.
+
 ### Step 1: Deep Clarification & Problem Statement Drilling
 
 1.  **Check for Concept Foundation & Author Identity**: Verify if the user provided an initial

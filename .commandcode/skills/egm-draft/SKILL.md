@@ -138,6 +138,32 @@ this strict generation order:
         or here in chat) so I can revise the draft."` and yield active execution
         to wait for user clarification in chat.
 
+### Step 0: Trace the Files the Draft Will Touch (Nexo-Palace Engine)
+
+Before drafting the technical plan, establish what the draft's code will be
+answering to. This step is about hidden obligations, not about content.
+
+1.  **Identify the candidate files** from the ingested brief: the modules the
+    feature touches, plus the modules that import them.
+2.  **Call the memory engine** for each candidate file:
+    *   **Preferred**: the MCP tool `memory_trace` with the file path as
+        `entity`.
+    *   **Fallback**: `npm run palace -- trace "<ruta>" --depth 2`.
+3.  **Read the subgraph and carry these into the draft**:
+    *   `requirements` — the requirement IDs the file implements. The design
+        document must state which requirement each section satisfies.
+    *   `tests` — the tests that cover the file. If `tests` is empty, the
+        draft must specify the test that will cover the new behaviour.
+    *   `documents` — the documents that already describe the file. Reuse
+        their terminology instead of inventing new names.
+    *   `dependencies` / `dependents` — the modules whose behaviour the change
+        can break. List them in the risk section.
+    *   `taste` — the conventions that bind the file. Quote the specific
+        convention, not a paraphrase.
+4.  **Do not proceed to Step 2 without the trace result** for at least the
+    primary file. If the engine is unavailable, say so in the draft's
+    "Context" section instead of inventing traceability.
+
 ### Step 1: Ingest Predecessor Context (Concepts Brief or Notes)
 
 1.  **Context File**: If `Context File` is specified, read and parse it directly.
