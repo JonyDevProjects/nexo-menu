@@ -319,3 +319,17 @@ export function saveLocalMenuSync(menu: FullMenuData): void {
   writeJsonAtomically(LOCAL_MENUS_FILE, currentIndex);
   persistVersion();
 }
+
+/**
+ * Resets internal in-memory caches and flags.
+ * Intended for use in unit tests to ensure isolation between test runs.
+ * @internal
+ */
+export function _resetStoreForTesting(): void {
+  inMemoryStore.clear();
+  currentVersion = 0;
+  expectedTimestamp = 0;
+  writePromise = null;
+  writableDiskCacheFlag = null;
+}
+

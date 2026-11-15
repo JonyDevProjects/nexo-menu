@@ -100,7 +100,11 @@ export const InferenceControlPanel: React.FC<InferenceControlPanelProps> = ({
     const clean = val.trim();
     const updated = { ...config, geminiApiKey: clean };
     onChangeConfig(updated);
-    localStorage.setItem("nexo_gemini_api_key", clean);
+    if (clean) {
+      localStorage.setItem("nexo_gemini_api_key", clean);
+    } else {
+      localStorage.removeItem("nexo_gemini_api_key");
+    }
   };
 
   const handleModelChange = (val: string) => {
@@ -365,6 +369,17 @@ export const InferenceControlPanel: React.FC<InferenceControlPanelProps> = ({
                   >
                     {showApiKey ? "Ocultar" : "Ver"}
                   </Button>
+                  {config.geminiApiKey && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => handleApiKeyChange("")}
+                      className="text-[11px] px-2.5 py-1 h-auto text-amber-600 dark:text-amber-400 hover:text-red-600"
+                      title="Limpiar clave del navegador y usar la configurada en .env"
+                    >
+                      Limpiar
+                    </Button>
+                  )}
                 </div>
                 <div className="space-y-1 pt-1 border-t border-sky-100/60 dark:border-sky-900/40">
                   <div className="flex items-center justify-between">

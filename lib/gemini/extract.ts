@@ -1,3 +1,5 @@
+import * as fs from "node:fs";
+import * as path from "node:path";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { GEMINI_MENU_EXTRACTION_SYSTEM_PROMPT, GEMINI_RESPONSE_SCHEMA } from "./prompt";
 import { ExtractedMenu, ExtractedMenuSchema } from "../types";
@@ -10,6 +12,39 @@ export interface ImageInput {
 export interface GeminiExtractionResult {
   data: ExtractedMenu;
   modelUsed: string;
+}
+
+/**
+ * Lee la clave configurada en los archivos locales .env.local o .env
+ */
+function getEnvApiKey(): string {
+  try {
+    for (const envFile of [".env.local", ".env"]) {
+      const fullPath = path.resolve(process.cwd(), envFile);
+      if (fs.existsSync(fullPath)) {
+        const content = fs.readFileSync(fullPath, "utf-8");
+        const match = content.match(/^GEMINI_API_KEY=(.*)$/m);
+        if (match && match[1]?.trim()) {
+          return match[1].trim();
+        }
+      }
+    }
+  } catch {
+    // fallback a process.env
+  }
+  return (process.env.GEMINI_API_KEY || "").trim();
+}
+
+/**
+ * Obtiene la clave de API efectiva dando prioridad al archivo .env / .env.local
+ * para evitar que variables obsoletas del entorno global (p. ej. en ~/.zshrc)
+ * sobreescriban la clave válida configurada localmente en el proyecto.
+ */
+function getEffectiveApiKey(apiKeyOverride?: string): string {
+  if (apiKeyOverride && apiKeyOverride.trim()) {
+    return apiKeyOverride.trim();
+  }
+  return getEnvApiKey();
 }
 
 /**
@@ -78,10 +113,10 @@ function resolveCandidateModels(
   if (availableModels.length > 0) {
     const priorityList = [
       "gemini-flash-lite-latest",
+      "gemini-flash-latest",
       "gemini-2.0-flash",
       "gemini-1.5-flash-latest",
       "gemini-1.5-flash",
-      "gemini-flash-latest",
       "gemini-1.5-flash-002",
       "gemini-1.5-flash-8b",
       "gemini-2.0-flash-exp",
@@ -115,10 +150,10 @@ function resolveCandidateModels(
   // 3. Fallback estático estándar (si ListModels no devolvió resultados)
   const defaultStaticList = [
     "gemini-flash-lite-latest",
+    "gemini-flash-latest",
     "gemini-2.0-flash",
     "gemini-1.5-flash-latest",
     "gemini-1.5-flash",
-    "gemini-flash-latest",
     "gemini-1.5-flash-002",
     "gemini-1.5-flash-8b",
   ];
@@ -138,7 +173,14 @@ export async function extractMenuFromImages(
   apiKeyOverride?: string,
   modelOverride?: string
 ): Promise<GeminiExtractionResult> {
-  const apiKey = (apiKeyOverride || process.env.GEMINI_API_KEY || "").trim();
+  let apiKey = getEffectiveApiKey(apiKeyOverride);
+  const envKey = getEnvApiKey();
+
+  console.log(
+    `[Gemini Auth] Usando clave terminada en: ...${apiKey.slice(-4)} (origen: ${
+      apiKeyOverride ? "CLIENTE (formulario/localStorage)" : "SERVIDOR (.env)"
+    })`
+  );
 
   if (!apiKey || apiKey === "your-gemini-api-key") {
     console.warn("GEMINI_API_KEY no configurada. Usando respuesta simulada para pruebas de desarrollo.");
@@ -148,7 +190,27 @@ export async function extractMenuFromImages(
     };
   }
 
-  const genAI = new GoogleGenerativeAI(apiKey);
+  // 1. Descubrir modelos activos para la clave de API
+  let availableModels = await fetchAvailableModels(apiKey);
+  if (availableModels.length === 0 && apiKeyOverride && envKey && apiKey !== envKey) {
+    console.warn(
+      `[Gemini Auth] La clave enviada por el navegador (...${apiKey.slice(
+        -4
+      )}) no devolvió modelos o dio 401. Probando con clave de servidor (.env)...`
+    );
+    const envModels = await fetchAvailableModels(envKey);
+    if (envModels.length > 0) {
+      console.log(
+        `[Gemini Auth] Clave de servidor (.env) válida y autenticada (...${envKey.slice(
+          -4
+        )}). Sustituyendo clave.`
+      );
+      apiKey = envKey;
+      availableModels = envModels;
+    }
+  }
+
+  let genAI = new GoogleGenerativeAI(apiKey);
 
   const imageParts = images.map((img) => ({
     inlineData: {
@@ -160,8 +222,6 @@ export async function extractMenuFromImages(
   const prompt =
     "Analiza y extrae minuciosamente todos los platos, categorías, precios en euros y alérgenos de la UE de esta carta:";
 
-  // 1. Descubrir modelos activos para la clave de API
-  const availableModels = await fetchAvailableModels(apiKey);
   if (availableModels.length > 0) {
     console.log(`[Gemini] Modelos activos detectados para esta clave:`, availableModels.slice(0, 5).join(", "));
   }
@@ -192,31 +252,31 @@ export async function extractMenuFromImages(
       break;
     }
 
+    const timeoutMs = 20000; // Timeout de 20s por intento con AbortController
+    const abortController = new AbortController();
+    let timer: NodeJS.Timeout | null = null;
+
+    const modelTimeoutPromise = new Promise<never>((_, reject) => {
+      timer = setTimeout(() => {
+        abortController.abort();
+        reject(new Error(`Timeout de ${timeoutMs}ms superado para modelo ${config.model}`));
+      }, timeoutMs);
+    });
+
+    const requestOptions: any = {
+      signal: abortController.signal,
+      timeout: timeoutMs,
+    };
+    if (config.apiVersion) {
+      requestOptions.apiVersion = config.apiVersion;
+    }
+
     try {
       console.log(
         `[Gemini] Ejecutando extracción con modelo: ${config.model}${
           config.apiVersion ? ` (endpoint ${config.apiVersion})` : ""
         }...`
       );
-
-      const timeoutMs = 20000; // Timeout de 20s por intento con AbortController
-      const abortController = new AbortController();
-      let timer: NodeJS.Timeout | null = null;
-
-      const modelTimeoutPromise = new Promise<never>((_, reject) => {
-        timer = setTimeout(() => {
-          abortController.abort();
-          reject(new Error(`Timeout de ${timeoutMs}ms superado para modelo ${config.model}`));
-        }, timeoutMs);
-      });
-
-      const requestOptions: any = {
-        signal: abortController.signal,
-        timeout: timeoutMs,
-      };
-      if (config.apiVersion) {
-        requestOptions.apiVersion = config.apiVersion;
-      }
 
       const model = genAI.getGenerativeModel(
         {
@@ -262,7 +322,50 @@ export async function extractMenuFromImages(
       const errMsg = String(err?.message || err);
       console.warn(`[Gemini] Falló intento con ${config.model}:`, errMsg);
 
-      // Si es un error de autenticación 401 o cuota 429, no es problema del modelo: salir inmediatamente
+      // Si es un error de autenticación 401 y estábamos usando una clave del cliente distinta a la del servidor (.env),
+      // conmutamos automáticamente a la clave del servidor y reintentamos.
+      if (
+        (errMsg.includes("401") ||
+          errMsg.includes("API key not valid") ||
+          errMsg.includes("ACCESS_TOKEN_TYPE_UNSUPPORTED")) &&
+        apiKeyOverride &&
+        envKey &&
+        apiKey !== envKey
+      ) {
+        console.warn(
+          `[Gemini Auth] Error 401 con clave del navegador. Conmutando a clave válida del servidor (.env)...`
+        );
+        apiKey = envKey;
+        genAI = new GoogleGenerativeAI(apiKey);
+        try {
+          const fallbackModel = genAI.getGenerativeModel(
+            {
+              model: config.model,
+              generationConfig: {
+                responseMimeType: "application/json",
+                // @ts-expect-error responseSchema is supported in Gemini 1.5+
+                responseSchema: GEMINI_RESPONSE_SCHEMA,
+                temperature: 0.2,
+              },
+              systemInstruction: GEMINI_MENU_EXTRACTION_SYSTEM_PROMPT,
+            },
+            requestOptions
+          );
+          const genFallback = await fallbackModel.generateContent([prompt, ...imageParts]);
+          const textFallback = genFallback.response.text();
+          const parsed = ExtractedMenuSchema.parse(JSON.parse(textFallback));
+          console.log(`[Gemini] Extracción completada con éxito usando clave del servidor (.env) y modelo ${config.model}`);
+          successfulResult = {
+            data: parsed,
+            modelUsed: config.model,
+          };
+          break;
+        } catch (rescueErr) {
+          console.warn("[Gemini Auth] Reintento de rescate con clave de .env falló:", rescueErr);
+        }
+      }
+
+      // Si es un error de autenticación 401 definitivo o cuota 429, no es problema del modelo: salir inmediatamente
       if (
         errMsg.includes("401") ||
         errMsg.includes("API key not valid") ||

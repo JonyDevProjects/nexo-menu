@@ -77,6 +77,12 @@ describe("localStore – in-memory cache & disk persistence", () => {
     return mod;
   }
 
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    const { _resetStoreForTesting } = await loadModule();
+    _resetStoreForTesting();
+  });
+
   // ── Test 1: saveLocalMenu stores data in memory map ────────────────────────
 
   it("saveLocalMenu stores data in the in-memory Map", async () => {
@@ -88,16 +94,19 @@ describe("localStore – in-memory cache & disk persistence", () => {
 
     const menu = makeFixture();
 
-    // Act: stub writeFileSync to throw ENOENT on tmp-path so we capture writes.
+    // Act: allow .local_write_test probe to succeed, but throw when writing payload to tmp-path
     let capturedPayload: string | null = null;
-    vi.mocked(fs.writeFileSync).mockImplementation((_path, data) => {
+    vi.mocked(fs.writeFileSync).mockImplementation((targetPath, data) => {
+      if (String(targetPath).includes(".local_write_test")) {
+        return;
+      }
       capturedPayload = typeof data === "string" ? data : String(data);
       // Throw on the temp path so the verify step catches the error.
       throw new Error("ENOSPC: simulated disk full");
     });
     vi.mocked(fs.renameSync).mockImplementation(() => { /* no-op */ });
 
-    // We know writeJsonAtomicy throws → saveLocalMenu wraps it.
+    // We know writeJsonAtomically throws → saveLocalMenu wraps it.
     // But our custom error message lets us verify the write happened.
     const { saveLocalMenu } = await loadModule();
     await expect(saveLocalMenu(menu)).rejects.toThrow(/simulate/);
@@ -179,7 +188,10 @@ describe("localStore – in-memory cache & disk persistence", () => {
   it("Serialization/deserialization round-trip preserves data structure", async () => {
     // Arrange: the real JSON.parse/stringify cycle preserves everything.
     const menu = makeFixture();
-    const json = JSON.stringify(menu);
+    const index: Record<string, FullMenuData> = {
+      [menu.restaurant.slug]: menu,
+    };
+    const json = JSON.stringify(index);
 
     vi.mocked(fs.existsSync).mockReturnValue(true);
     // ensureLoaded() calls readFileSync twice.
@@ -206,7 +218,7 @@ describe("localStore – in-memory cache & disk persistence", () => {
   // ── Test 5: Error thrown when disk operations fail ─────────────────────────
 
   it("Error thrown when disk operations fail (mock fs to throw)", async () => {
-    // Arrange: cause writeFileSync to throw → error surfaces through saveLocalMenu.
+    // Arrange: cause writeFileSync to throw on menu payload → error surfaces through saveLocalMenu.
     vi.mocked(fs.existsSync).mockReturnValue(true);
     // ensureLoaded() reads twice + parseMenusFile in write path = three calls.
     vi.mocked(fs.readFileSync)
@@ -214,7 +226,10 @@ describe("localStore – in-memory cache & disk persistence", () => {
       .mockReturnValueOnce("{}")          // menus file (empty index)
       .mockReturnValueOnce("{}");         // parseMenusFile in write path
 
-    vi.mocked(fs.writeFileSync).mockImplementation(() => {
+    vi.mocked(fs.writeFileSync).mockImplementation((targetPath) => {
+      if (String(targetPath).includes(".local_write_test")) {
+        return;
+      }
       throw new Error("EACCES: permission denied");
     });
 
@@ -223,5 +238,26 @@ describe("localStore – in-memory cache & disk persistence", () => {
     await expect(saveLocalMenu(makeFixture())).rejects.toThrow(
       "[LocalStore] Error al persistir local_menus.json",
     );
+  });
+
+  // ── Test 6: Graceful fallback when filesystem is read-only (Serverless/Docker)
+
+  it("gracefully falls back to in-memory store without throwing when disk is read-only", async () => {
+    vi.mocked(fs.existsSync).mockReturnValue(true);
+    vi.mocked(fs.readFileSync).mockReturnValue("{}");
+    vi.mocked(fs.writeFileSync).mockImplementation((targetPath) => {
+      if (String(targetPath).includes(".local_write_test")) {
+        throw new Error("EROFS: read-only file system");
+      }
+    });
+
+    const { saveLocalMenu, getLocalMenu } = await loadModule();
+    const menu = makeFixture();
+
+    // Act & Assert: does not throw, saves in memory
+    await expect(saveLocalMenu(menu)).resolves.toBeUndefined();
+    const retrieved = getLocalMenu("test-slug");
+    expect(retrieved).not.toBeNull();
+    expect(retrieved!.restaurant.name).toBe("Test Restaurant");
   });
 });

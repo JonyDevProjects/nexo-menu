@@ -40,3 +40,7 @@ palace.rebuilt*
 roster-backups/
 roster.json
 hive/
+
+# Nexo-Palace Memory Cache
+.nexo-palace/
+
