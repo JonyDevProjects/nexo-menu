@@ -1,3 +1,5 @@
+import * as fs from "node:fs";
+import * as path from "node:path";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { GEMINI_MENU_EXTRACTION_SYSTEM_PROMPT, GEMINI_RESPONSE_SCHEMA } from "./prompt";
 import { ExtractedMenu, ExtractedMenuSchema } from "../types";
@@ -10,6 +12,32 @@ export interface ImageInput {
 export interface GeminiExtractionResult {
   data: ExtractedMenu;
   modelUsed: string;
+}
+
+/**
+ * Obtiene la clave de API efectiva dando prioridad al archivo .env / .env.local
+ * para evitar que variables obsoletas del entorno global (p. ej. en ~/.zshrc)
+ * sobreescriban la clave válida configurada localmente en el proyecto.
+ */
+function getEffectiveApiKey(apiKeyOverride?: string): string {
+  if (apiKeyOverride && apiKeyOverride.trim()) {
+    return apiKeyOverride.trim();
+  }
+  try {
+    for (const envFile of [".env.local", ".env"]) {
+      const fullPath = path.resolve(process.cwd(), envFile);
+      if (fs.existsSync(fullPath)) {
+        const content = fs.readFileSync(fullPath, "utf-8");
+        const match = content.match(/^GEMINI_API_KEY=(.*)$/m);
+        if (match && match[1]?.trim()) {
+          return match[1].trim();
+        }
+      }
+    }
+  } catch {
+    // fallback a process.env
+  }
+  return (process.env.GEMINI_API_KEY || "").trim();
 }
 
 /**
@@ -78,10 +106,10 @@ function resolveCandidateModels(
   if (availableModels.length > 0) {
     const priorityList = [
       "gemini-flash-lite-latest",
+      "gemini-flash-latest",
       "gemini-2.0-flash",
       "gemini-1.5-flash-latest",
       "gemini-1.5-flash",
-      "gemini-flash-latest",
       "gemini-1.5-flash-002",
       "gemini-1.5-flash-8b",
       "gemini-2.0-flash-exp",
@@ -115,10 +143,10 @@ function resolveCandidateModels(
   // 3. Fallback estático estándar (si ListModels no devolvió resultados)
   const defaultStaticList = [
     "gemini-flash-lite-latest",
+    "gemini-flash-latest",
     "gemini-2.0-flash",
     "gemini-1.5-flash-latest",
     "gemini-1.5-flash",
-    "gemini-flash-latest",
     "gemini-1.5-flash-002",
     "gemini-1.5-flash-8b",
   ];
@@ -138,7 +166,7 @@ export async function extractMenuFromImages(
   apiKeyOverride?: string,
   modelOverride?: string
 ): Promise<GeminiExtractionResult> {
-  const apiKey = (apiKeyOverride || process.env.GEMINI_API_KEY || "").trim();
+  const apiKey = getEffectiveApiKey(apiKeyOverride);
 
   if (!apiKey || apiKey === "your-gemini-api-key") {
     console.warn("GEMINI_API_KEY no configurada. Usando respuesta simulada para pruebas de desarrollo.");
